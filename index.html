@@ -117,65 +117,207 @@
       color: var(--text-dim);
     }
 
-    /* Radar visual */
+    /* Premium flow diagram hero visual */
     .radar-wrap {
       display: grid;
       place-items: center;
       position: relative;
+      padding: 1rem;
     }
-    .radar {
-      width: min(420px, 80vw);
-      aspect-ratio: 1;
-      border-radius: 50%;
+    .radar-shell {
       position: relative;
-      background:
-        radial-gradient(circle, rgba(0, 212, 255, 0.06), transparent 70%),
-        repeating-radial-gradient(circle, transparent 0 54px, rgba(0, 212, 255, 0.14) 54px 55px);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      box-shadow: 0 0 60px rgba(0, 212, 255, 0.12), inset 0 0 60px rgba(0, 212, 255, 0.06);
+      width: min(560px, 84vw);
+      min-height: 420px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(12, 20, 36, 0.92), rgba(8, 12, 22, 0.96));
+      border: 1px solid rgba(90, 140, 255, 0.2);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.44), inset 0 0 45px rgba(0, 212, 255, 0.05);
+      overflow: hidden;
+      padding: 1rem;
     }
-    .radar::before,
-    .radar::after {
+    .radar-shell::before {
       content: "";
       position: absolute;
-      background: rgba(0, 212, 255, 0.18);
+      inset: -16% 18% 42% 18%;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.18), transparent 68%);
+      filter: blur(12px);
+      pointer-events: none;
     }
-    .radar::before {
-      width: 100%;
-      height: 1px;
-      top: 50%;
-      left: 0;
+    .radar-panel {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-radius: 15px;
+      background: rgba(12, 21, 36, 0.72);
+      border: 1px solid rgba(90, 140, 255, 0.18);
+      backdrop-filter: blur(8px);
+      margin-bottom: 1rem;
     }
-    .radar::after {
-      height: 100%;
-      width: 1px;
-      left: 50%;
-      top: 0;
+    .mini-signal,
+    .radar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
     }
-    .radar-sweep {
-      position: absolute;
-      inset: 0;
+    .mini-signal::before,
+    .radar-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: conic-gradient(from 0deg, rgba(0, 212, 255, 0.35), transparent 70deg, transparent);
-      animation: radarSweep 4s linear infinite;
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+      animation: pulseGlow 1.8s infinite;
     }
-    .radar-blip {
-      position: absolute;
+    .radar-badge {
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 999px;
+      padding: 0.45rem 0.7rem;
+    }
+    .flow-diagram {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 1rem;
+      align-items: center;
+      min-height: 300px;
+      padding: 0.8rem 0.6rem 0.2rem;
+    }
+    .flow-node {
+      position: relative;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      min-height: 112px;
+      background: rgba(15, 25, 42, 0.8);
+      border: 1px solid rgba(90, 140, 255, 0.18);
+      border-radius: 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    .flow-node.center {
+      min-height: 138px;
+      background: linear-gradient(180deg, rgba(18, 35, 58, 0.9), rgba(11, 17, 30, 0.94));
+      border-color: rgba(0, 212, 255, 0.5);
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.12);
+    }
+    .flow-node .node-tag {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.55rem;
+    }
+    .flow-node strong {
+      font-size: 1.08rem;
+      letter-spacing: -0.04em;
+    }
+    .flow-node .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
-      animation: blink 1.6s infinite;
+      display: block;
+      background: var(--ok);
+      margin: 0 auto 0.7rem;
+      box-shadow: 0 0 12px var(--ok);
     }
-    .radar-blip.warn { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
-    .radar-blip.ok { background: var(--ok); box-shadow: 0 0 12px var(--ok); }
+    .flow-node.alert .dot { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
+    .flow-node.critical .dot { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+    .flow-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .flow-lines::before,
+    .flow-lines::after {
+      content: "";
+      position: absolute;
+      left: 17%;
+      right: 17%;
+      top: 44%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(124, 92, 255, 0.8), transparent);
+      box-shadow: 0 0 18px rgba(0, 212, 255, 0.25);
+      animation: flowPulse 3s ease-in-out infinite alternate;
+    }
+    .flow-lines::after {
+      left: 31%;
+      right: 31%;
+      top: 56%;
+      background: linear-gradient(90deg, transparent, rgba(255, 176, 32, 0.7), rgba(0, 212, 255, 0.6), transparent);
+    }
+    .flow-lines .branch {
+      position: absolute;
+      width: 54px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.8), transparent);
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.2);
+      animation: flowPulse 2.5s ease-in-out infinite alternate;
+    }
+    .flow-lines .branch.a { top: 48%; left: 24%; transform: rotate(18deg); }
+    .flow-lines .branch.b { top: 48%; right: 24%; transform: rotate(-18deg); }
+    .flow-lines .branch.c { top: 60%; left: 41%; transform: rotate(-24deg); }
+    .flow-lines .branch.d { top: 60%; right: 41%; transform: rotate(24deg); }
+    .flow-note {
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 2;
+      padding: 0.5rem 0.8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(90, 140, 255, 0.18);
+      background: rgba(10, 17, 30, 0.7);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
 
     /* ---------- Sections ---------- */
     section.block {
       max-width: 1400px;
       margin: 0 auto;
       padding: 5.5rem 3rem;
+    }
+    .proof-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 1rem;
+      margin: 0 auto 2.3rem;
+      padding: 1rem;
+      background: rgba(13, 21, 36, 0.7);
+      border: 1px solid rgba(124, 92, 255, 0.18);
+      border-radius: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    }
+    .proof-item {
+      padding: 1rem 1.1rem;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid rgba(90, 140, 255, 0.12);
+    }
+    .proof-item span {
+      display: block;
+      color: var(--text-dim);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.45rem;
+    }
+    .proof-item strong {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: var(--text);
     }
     .section-head { margin-bottom: 3rem; }
     .section-head h2 {
@@ -188,6 +330,92 @@
       margin-top: 0.7rem;
       max-width: 44rem;
       line-height: 1.7;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.3rem;
+      margin-bottom: 2.5rem;
+    }
+    .showcase-panel {
+      padding: 1.7rem;
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(14, 24, 42, 0.95), rgba(9, 17, 30, 0.9));
+      border: 1px solid rgba(90, 140, 255, 0.18);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+    .showcase-panel.accent {
+      background: linear-gradient(135deg, rgba(12, 23, 41, 0.96), rgba(25, 16, 42, 0.92));
+    }
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+    .showcase-panel h3 {
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .showcase-panel ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.8rem;
+      color: var(--text-dim);
+    }
+    .showcase-panel li {
+      position: relative;
+      padding-left: 1.1rem;
+      line-height: 1.7;
+    }
+    .showcase-panel li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent-2);
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+    .mini-metric {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.8rem;
+      padding-bottom: 0.8rem;
+      margin-bottom: 0.7rem;
+      border-bottom: 1px solid rgba(90, 140, 255, 0.12);
+    }
+    .mini-metric span {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .mini-metric strong {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      color: var(--text);
+    }
+    .mini-metric.muted strong { color: var(--accent-2); }
+    .mini-bars {
+      display: flex;
+      align-items: end;
+      gap: 0.7rem;
+      height: 160px;
+      padding-top: 1rem;
+    }
+    .mini-bars i {
+      flex: 1;
+      border-radius: 999px 999px 0 0;
+      background: linear-gradient(180deg, var(--accent-2), var(--accent-3));
+      box-shadow: 0 0 18px rgba(0, 212, 255, 0.15);
+      min-height: 20px;
     }
 
     .features-grid {
@@ -292,6 +520,8 @@
       .site-header { padding: 0.9rem 1.4rem; }
       section.block, .cta-panel { padding-left: 1.4rem; padding-right: 1.4rem; }
       .step-arrow { display: none; }
+      .proof-strip,
+      .showcase-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -346,19 +576,59 @@
     </div>
 
     <div class="radar-wrap rise-big" style="animation-delay: 0.5s">
-      <div class="radar">
-        <div class="radar-sweep"></div>
-        <span class="radar-blip" style="top: 22%; left: 58%;"></span>
-        <span class="radar-blip warn" style="top: 40%; left: 30%;"></span>
-        <span class="radar-blip ok" style="top: 62%; left: 66%;"></span>
-        <span class="radar-blip ok" style="top: 74%; left: 42%;"></span>
-        <span class="radar-blip" style="top: 34%; left: 74%;"></span>
+      <div class="radar-shell">
+        <div class="radar-panel">
+          <div class="mini-signal">Live signal</div>
+          <div class="radar-badge">98.4% stable</div>
+        </div>
+
+        <div class="flow-diagram">
+          <div class="flow-lines">
+            <span class="branch a"></span>
+            <span class="branch b"></span>
+            <span class="branch c"></span>
+            <span class="branch d"></span>
+          </div>
+
+          <div class="flow-node">
+            <span class="node-tag">Ingest</span>
+            <span class="dot"></span>
+            <strong>Stations</strong>
+          </div>
+
+          <div class="flow-node center">
+            <span class="node-tag">Neural</span>
+            <span class="dot"></span>
+            <strong>SkyWatch AI</strong>
+          </div>
+
+          <div class="flow-node alert">
+            <span class="node-tag">Detect</span>
+            <span class="dot"></span>
+            <strong>Alerting</strong>
+          </div>
+
+          <div class="flow-node critical">
+            <span class="node-tag">Action</span>
+            <span class="dot"></span>
+            <strong>Ops</strong>
+          </div>
+        </div>
+
+        <div class="flow-note">Path analysis active</div>
       </div>
     </div>
   </section>
 
   <!-- ================= FEATURES ================= -->
   <section class="block" id="features">
+    <div class="proof-strip reveal">
+      <div class="proof-item"><span>Coverage</span><strong>42 regions</strong></div>
+      <div class="proof-item"><span>Mean latency</span><strong>980 ms</strong></div>
+      <div class="proof-item"><span>Detection rate</span><strong>96.4%</strong></div>
+      <div class="proof-item"><span>Alerts resolved</span><strong>1.8K / wk</strong></div>
+    </div>
+
     <div class="section-head reveal">
       <div class="tag"><span class="dot"></span> CAPABILITIES</div>
       <h2>Everything You Need to <span class="gradient-text">Watch the Sky</span></h2>
@@ -398,8 +668,38 @@
     </div>
   </section>
 
-  <!-- ================= WORKFLOW ================= -->
+  <!-- ================= HIGHLIGHTS ================= -->
   <section class="block" id="workflow">
+    <div class="showcase-grid reveal">
+      <div class="showcase-panel">
+        <div class="eyebrow">Operational visibility</div>
+        <h3>See every station, every signal, every risk in one view.</h3>
+        <ul>
+          <li>Live weather telemetry across cities and industrial zones</li>
+          <li>Priority anomaly scoring with root-cause reasoning</li>
+          <li>Fast operator action with guided remediation</li>
+        </ul>
+      </div>
+      <div class="showcase-panel accent">
+        <div class="mini-metric">
+          <span>Risk index</span>
+          <strong>84</strong>
+        </div>
+        <div class="mini-metric muted">
+          <span>Critical stations</span>
+          <strong>06</strong>
+        </div>
+        <div class="mini-bars">
+          <i style="height: 45%"></i>
+          <i style="height: 68%"></i>
+          <i style="height: 56%"></i>
+          <i style="height: 78%"></i>
+          <i style="height: 88%"></i>
+          <i style="height: 96%"></i>
+        </div>
+      </div>
+    </div>
+
     <div class="section-head reveal">
       <div class="tag"><span class="dot"></span> HOW IT WORKS</div>
       <h2>Detection <span class="gradient-text">Workflow</span></h2>
