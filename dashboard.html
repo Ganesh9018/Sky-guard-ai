@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyWatch — Live Anomaly Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ================= TOP HEADER PANEL ================= -->
+  <header class="dash-header">
+    <div class="dash-logo">
+      <span class="logo-mark">⛈</span>
+      <span>Sky<span class="gradient-text">Watch</span></span>
+      <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
+    </div>
+
+    <div class="dash-search">
+      <span>🔍</span>
+      <input type="text" id="stationSearch" placeholder="Search stations, e.g. Mumbai, Delhi…">
+    </div>
+
+    <div class="dash-user">
+      <div class="clock" id="liveClock">--:--:--</div>
+      <div class="user-chip" id="userChip">
+        <span class="avatar" id="userAvatar">?</span>
+        <span class="user-name" id="userName">Guest</span>
+        <button class="logout-btn" id="logoutBtn" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN GRID ================= -->
+  <main class="dash-main">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav class="side-nav">
+        <button class="side-btn active" data-view="overview" title="Overview">📊<span>Overview</span></button>
+        <button class="side-btn" data-view="stations" title="Stations">📡<span>Stations</span></button>
+        <button class="side-btn" data-view="alerts" title="Alerts">🚨<span>Alerts</span></button>
+        <button class="side-btn" data-view="analytics" title="Analytics">📈<span>Analytics</span></button>
+      </nav>
+      <div class="side-legend border-dash">
+        <h4>Map Legend</h4>
+        <div class="legend-row"><span class="lg-dot ok"></span> Normal</div>
+        <div class="legend-row"><span class="lg-dot warn"></span> Warning</div>
+        <div class="legend-row"><span class="lg-dot danger"></span> Anomaly</div>
+        <div class="legend-row"><span class="lg-dot offline"></span> Offline</div>
+      </div>
+      <div class="side-threshold border-glow">
+        <h4>⚙️ Detection Sensitivity</h4>
+        <label class="range-label">Z-Score Threshold: <b id="zLabel">2.5σ</b></label>
+        <input type="range" id="zSlider" min="1.5" max="4" step="0.1" value="2.5">
+        <p class="hint">Lower = more sensitive. Anomalies re-score instantly.</p>
+      </div>
+      <div class="side-threshold border-dash">
+        <h4>🩺 Sensor Health</h4>
+        <div class="health-list" id="healthList"></div>
+      </div>
+    </aside>
+
+    <!-- Content column -->
+    <section class="content">
+      <!-- KPI cards -->
+      <div class="kpi-row">
+        <div class="kpi border-anim rise" style="animation-delay:0.05s">
+          <div class="kpi-top"><span class="kpi-icon">📡</span><span class="kpi-label">Active Stations</span></div>
+          <div class="kpi-value" id="kpiStations">0</div>
+          <div class="kpi-sub"><span class="trend up">▲</span> all reporting</div>
+        </div>
+        <div class="kpi border-anim rise" style="animation-delay:0.15s">
+          <div class="kpi-top"><span class="kpi-icon">🚨</span><span class="kpi-label">Active Anomalies</span></div>
+          <div class="kpi-value danger-text" id="kpiAnomalies">0</div>
+          <div class="kpi-sub"><span class="trend down">▼</span> last 24h</div>
+        </div>
+        <div class="kpi border-anim rise" style="animation-delay:0.25s">
+          <div class="kpi-top"><span class="kpi-icon">🌡️</span><span class="kpi-label">Avg Temperature</span></div>
+          <div class="kpi-value" id="kpiTemp">--</div>
+          <div class="kpi-sub"><span class="trend up">▲</span> network mean</div>
+        </div>
+        <div class="kpi border-anim rise" style="animation-delay:0.35s">
+          <div class="kpi-top"><span class="kpi-icon">💧</span><span class="kpi-label">Avg Humidity</span></div>
+          <div class="kpi-value" id="kpiHum">--</div>
+          <div class="kpi-sub"><span class="trend up">▲</span> network mean</div>
+        </div>
+      </div>
+
+      <!-- Map + detail panel -->
+      <div class="map-row">
+        <div class="map-panel border-anim rise" style="animation-delay:0.3s">
+          <div class="panel-head">
+            <h3>🗺️ Station Map — <span id="regionName">Mumbai Region</span></h3>
+            <div class="map-tools">
+              <select id="regionSelect" class="tool-select">
+                <option value="mumbai">Mumbai</option>
+                <option value="delhi">Delhi NCR</option>
+                <option value="bangalore">Bengaluru</option>
+                <option value="chennai">Chennai</option>
+                <option value="kolkata">Kolkata</option>
+              </select>
+              <button class="tool-btn" id="toggleHeat" title="Toggle anomaly heat rings">🔥 Heat</button>
+              <button class="tool-btn" id="toggleLabels" title="Toggle station labels">🏷️ Labels</button>
+              <button class="tool-btn" id="fitBtn" title="Fit all stations">🎯 Fit</button>
+            </div>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <!-- Station detail -->
+        <div class="detail-panel border-glow rise" style="animation-delay:0.4s">
+          <div class="panel-head">
+            <h3>📍 Station Detail</h3>
+            <span class="status-pill" id="detailStatus">Select a station</span>
+          </div>
+          <div class="detail-body" id="detailBody">
+            <div class="empty-state">
+              <div class="empty-icon">🛰️</div>
+              <p>Click any station marker on the map<br>to inspect live telemetry.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts + alerts -->
+      <div class="bottom-row">
+        <div class="chart-panel border-anim rise" style="animation-delay:0.45s">
+          <div class="panel-head">
+            <h3>📈 24h Temperature History</h3>
+            <span class="chart-station" id="chartStation">Network average</span>
+          </div>
+          <canvas id="tempChart" height="150"></canvas>
+        </div>
+        <div class="alerts-panel border-anim rise" style="animation-delay:0.5s">
+          <div class="panel-head">
+            <h3>🚨 Anomaly Alert Feed</h3>
+            <button class="tool-btn" id="clearAlerts">Clear</button>
+          </div>
+          <div class="alerts-list" id="alertsList">
+            <div class="empty-state small">
+              <p>No anomalies detected yet.<br>Monitoring…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fault injection lab (evaluation) -->
+      <div class="table-panel border-anim rise" style="animation-delay:0.6s">
+        <div class="panel-head">
+          <h3>🧪 Fault-Injection Lab — Evaluate on Anomaly-Injected Data</h3>
+          <span class="chart-station">inject a fault, watch the AI detect it</span>
+        </div>
+        <div class="fault-lab">
+          <div class="fault-btns">
+            <button class="tool-btn fault-btn" data-fault="spike">⚡ Spike</button>
+            <button class="tool-btn fault-btn" data-fault="stuck">🧊 Stuck</button>
+            <button class="tool-btn fault-btn" data-fault="drift">📉 Drift</button>
+            <button class="tool-btn fault-btn" data-fault="frozen">❄️ Frozen</button>
+            <button class="tool-btn fault-btn" data-fault="comm_loss">📵 Comm Loss</button>
+            <button class="tool-btn fault-btn" data-fault="random_drop">🌪️ Pressure Drop</button>
+          </div>
+          <div class="eval-grid">
+            <div class="eval-cell"><span>Injected</span><b id="evalInjected">0</b></div>
+            <div class="eval-cell"><span>Detected</span><b id="evalDetected">0</b></div>
+            <div class="eval-cell"><span>Precision</span><b id="evalPrecision">--</b></div>
+            <div class="eval-cell"><span>Recall</span><b id="evalRecall">--</b></div>
+            <div class="eval-cell"><span>F1 Score</span><b id="evalF1">--</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stations table -->
+      <div class="table-panel border-anim rise" style="animation-delay:0.55s">
+        <div class="panel-head">
+          <h3>📡 All Stations</h3>
+          <span class="chart-station" id="tableCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Station</th><th>Status</th><th>Temp (°C)</th><th>Humidity (%)</th>
+                <th>Pressure (hPa)</th><th>Wind (km/h)</th><th>Rain (mm)</th><th>Anomaly Score</th>
+              </tr>
+            </thead>
+            <tbody id="stationTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
