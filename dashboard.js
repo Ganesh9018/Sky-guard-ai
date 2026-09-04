@@ -1,5 +1,5 @@
 /* ============================================================
-   SkyWatch — MoES AI/ML Anomaly Detection Engine (Browser)
+  SkyGuard — MoES AI/ML Anomaly Detection Engine (Browser)
    ------------------------------------------------------------
    Layers:
      L1 Physical plausibility      (range/step/rate limits)
@@ -657,6 +657,33 @@ function updateWorkspaceData() {
   const weatherTable = $("weatherTable");
   if (weatherTable) weatherTable.innerHTML = Object.values(weatherSnapshot).map((reading) => `<tr><td class="td-name">${reading.name}<br><span>${reading.id}</span></td><td>${reading.t.toFixed(1)}°C</td><td>${reading.h.toFixed(0)}%</td><td>${reading.r.toFixed(1)} mm</td><td>${reading.w.toFixed(0)} km/h</td><td>${reading.p.toFixed(0)} hPa</td></tr>`).join("");
   if ($("weatherUpdated")) $("weatherUpdated").textContent = `Updated ${new Date(weatherSnapshotAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const weatherReadings = Object.values(weatherSnapshot);
+  if (weatherReadings.length) {
+    const weatherAvg = (key) => weatherReadings.reduce((sum, reading) => sum + reading[key], 0) / weatherReadings.length;
+    const networkTemp = weatherAvg("t");
+    const networkRain = weatherAvg("r");
+    const networkWind = weatherAvg("w");
+    const networkHumidity = weatherAvg("h");
+    const networkPressure = weatherAvg("p");
+    const condition = networkRain > 1 ? "Rain showers nearby" : networkWind > 18 ? "Breezy and partly cloudy" : networkTemp > 31 ? "Warm and sunny" : "Partly cloudy";
+    $("weatherTemp").textContent = `${networkTemp.toFixed(0)}°`;
+    $("weatherCondition").textContent = condition;
+    $("weatherFeels").textContent = `Feels like ${(networkTemp + (networkHumidity > 70 ? 1 : 0)).toFixed(0)}° across the network`;
+    $("weatherHigh").textContent = `${(networkTemp + 2).toFixed(0)}°`;
+    $("weatherLow").textContent = `${(networkTemp - 3).toFixed(0)}°`;
+    $("weatherRainChance").textContent = `${clamp(Math.round(networkRain * 12), 4, 85)}%`;
+    $("weatherWind").textContent = `${networkWind.toFixed(0)} km/h`;
+    $("weatherHumidity").textContent = `${networkHumidity.toFixed(0)}%`;
+    $("weatherPressure").textContent = `${networkPressure.toFixed(0)} hPa`;
+    $("weatherScene")?.classList.toggle("rainy", networkRain > 1);
+    const forecast = $("hourlyForecast");
+    if (forecast) forecast.innerHTML = Array.from({ length: 8 }, (_, index) => {
+      const hour = new Date(Date.now() + index * 3600000);
+      const value = networkTemp + Math.sin((hour.getHours() / 24) * Math.PI * 2 - 1.2) * 1.8;
+      const icon = networkRain > 1 && index % 3 === 1 ? "🌧️" : index % 3 === 0 ? "☀️" : "⛅";
+      return `<div class="hour-card"><span>${index === 0 ? "Now" : hour.toLocaleTimeString([], { hour: "numeric" })}</span><b>${icon}</b><strong>${value.toFixed(0)}°</strong></div>`;
+    }).join("");
+  }
 }
 
 function updateHealthPanel() {

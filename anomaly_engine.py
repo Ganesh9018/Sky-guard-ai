@@ -1,6 +1,6 @@
 """
 ============================================================================
-SkyWatch — MoES AI/ML Anomaly Detection Engine for AWS (Python reference)
+SkyGuard — MoES AI/ML Anomaly Detection Engine for AWS (Python reference)
 ============================================================================
 Implements the same 5-layer detection stack as the browser dashboard:
 
@@ -446,7 +446,7 @@ def run_demo():
     anomalies_log = []
 
     print("=" * 78)
-    print("SkyWatch MoES demo — 200 ticks, 6 stations, 4 injected faults")
+    print("SkyGuard MoES demo — 200 ticks, 6 stations, 4 injected faults")
     print("=" * 78)
 
     for tick in range(200):
@@ -550,7 +550,7 @@ def run_csv(path: str):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="SkyWatch MoES AWS anomaly engine")
+    ap = argparse.ArgumentParser(description="SkyGuard MoES AWS anomaly engine")
     ap.add_argument("--csv", help="CSV file with station_id,timestamp,temperature,humidity,pressure")
     ap.add_argument("--demo", action="store_true", help="run built-in simulation demo")
     args = ap.parse_args()

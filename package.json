@@ -1,7 +1,7 @@
 {
-  "name": "skywatch-imd-server",
+  "name": "skyguard-imd-server",
   "version": "1.0.0",
-  "description": "SkyWatch API proxy and static server for IMD AWS data",
+  "description": "SkyGuard API proxy and static server for IMD AWS data",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

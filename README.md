@@ -1,4 +1,4 @@
-# SkyWatch — MoES AI/ML Intelligent Anomaly Detection for Automatic Weather Stations (AWS)
+# SkyGuard — MoES AI/ML Intelligent Anomaly Detection for Automatic Weather Stations (AWS)
 
 A self-aware, self-healing weather observation network: real-time anomaly detection over AWS data streams with **explainable AI**, **confidence scores**, **root-cause classification**, **sensor health prediction**, and **corrected-data estimation** — delivered through an animated visualization dashboard with a live station map.
 

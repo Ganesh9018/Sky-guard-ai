@@ -234,7 +234,16 @@
       </div>
 
       <div class="weather-panel table-panel border-anim" data-dashboard-view="weather">
-        <div class="panel-head"><div><p class="eyebrow">WEATHER OBSERVATIONS</p><h3>Stable station conditions</h3></div><span class="chart-station" id="weatherUpdated">Snapshot pending</span></div>
+        <div class="panel-head"><div><p class="eyebrow">WEATHER OBSERVATIONS</p><h3>Network weather</h3></div><span class="chart-station" id="weatherUpdated">Snapshot pending</span></div>
+        <div class="weather-hero">
+          <img src="https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?auto=format&fit=crop&w=1200&q=80" alt="Sunlight breaking through weather clouds">
+          <div class="weather-hero-shade"></div>
+          <div class="weather-scene" id="weatherScene"><span class="weather-sun">☀️</span><span class="weather-cloud">☁️</span><span class="weather-rain">⋮ ⋮ ⋮</span></div>
+          <div class="weather-current"><span class="weather-kicker">CURRENT NETWORK CONDITIONS</span><b id="weatherTemp">--°</b><strong id="weatherCondition">Loading conditions</strong><span id="weatherFeels">Feels like --°</span></div>
+          <div class="weather-highlow"><span>H <b id="weatherHigh">--°</b></span><span>L <b id="weatherLow">--°</b></span></div>
+        </div>
+        <div class="weather-stat-row"><div><span>Rain chance</span><b id="weatherRainChance">--%</b></div><div><span>Wind</span><b id="weatherWind">-- km/h</b></div><div><span>Humidity</span><b id="weatherHumidity">--%</b></div><div><span>Pressure</span><b id="weatherPressure">-- hPa</b></div></div>
+        <div class="hourly-strip" id="hourlyForecast"></div>
         <div class="weather-note">Readings are held between observation refreshes so short anomaly simulations do not make the weather report jump every second.</div>
         <div class="table-wrap"><table><thead><tr><th>Station</th><th>Temperature</th><th>Humidity</th><th>Precipitation</th><th>Wind</th><th>Pressure</th></tr></thead><tbody id="weatherTable"></tbody></table></div>
       </div>

@@ -1,5 +1,5 @@
 /* ============================================================
-   SkyWatch — Shared App Script
+  SkyGuard — Shared App Script
    Custom cursor, background color shift, scroll reveals,
    stat counters, auth (signup/login) flow with localStorage
    ============================================================ */

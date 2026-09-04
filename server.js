@@ -176,7 +176,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/api/health') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
-    res.end(JSON.stringify({ ok: true, service: 'SkyWatch IMD Proxy', timestamp: new Date().toISOString() }));
+    res.end(JSON.stringify({ ok: true, service: 'SkyGuard IMD Proxy', timestamp: new Date().toISOString() }));
     return;
   }
 
@@ -207,7 +207,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`SkyWatch IMD proxy running on http://localhost:${PORT}`);
+  console.log(`SkyGuard IMD proxy running on http://localhost:${PORT}`);
   console.log(`IMD base: ${IMD_BASE}`);
   console.log('Endpoints available:');
   console.log('  GET /api/health');

@@ -1,5 +1,5 @@
 /* ============================================================
-   SkyWatch — Dashboard Styles
+  SkyGuard — Dashboard Styles
    ============================================================ */
 
 body {
@@ -809,6 +809,7 @@ body { cursor: default; }
   box-shadow: none;
 }
 .dash-logo, .panel-head h3, .side-legend h4, .side-threshold h4 { color: #f4f7f8; }
+.dash-header, .dash-main, .dash-main p, .dash-main span, .dash-main label, .dash-main td, .dash-main th { color: #f4f7f8; }
 .dash-logo { font-family: var(--font-serif); letter-spacing: 0.06em; }
 .dash-logo .logo-mark { background: #174a6e; box-shadow: 0 0 22px rgba(107, 174, 214, 0.28); }
 .gradient-text { color: #6baed6; }
@@ -965,6 +966,7 @@ tbody tr:hover { background: rgba(107, 174, 214, 0.1); }
 .light-mode::after { background-image: linear-gradient(rgba(23, 74, 110, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 74, 110, 0.045) 1px, transparent 1px); }
 .light-mode .dash-header { background: rgba(255, 255, 255, 0.94); border-bottom-color: #e8edf1; }
 .light-mode .dash-logo, .light-mode .panel-head h3, .light-mode .side-threshold h4, .light-mode .page-heading h1 { color: #102a43; }
+.light-mode .dash-header, .light-mode .dash-main, .light-mode .dash-main p, .light-mode .dash-main span, .light-mode .dash-main label, .light-mode .dash-main td, .light-mode .dash-main th { color: #202124; }
 .light-mode .dash-search, .light-mode .user-chip, .light-mode .theme-toggle { background: #f7f9fa; border-color: #d9e2e8; color: #174a6e; }
 .light-mode .dash-search input, .light-mode .clock { color: #202124; }
 .light-mode .clock, .light-mode .dash-search input::placeholder, .light-mode .page-heading p:not(.eyebrow), .light-mode .kpi-label, .light-mode .kpi-sub { color: #65727c; }
@@ -1001,3 +1003,40 @@ tbody tr:hover { background: rgba(107, 174, 214, 0.1); }
 .light-mode .weather-note, .light-mode .weather-panel table span { color: #65727c; }
 @media (max-width: 1100px) { .side-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .side-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.weather-hero { position: relative; min-height: 260px; overflow: hidden; }
+.weather-hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.72; filter: saturate(0.9) contrast(1.05); }
+.weather-hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5, 25, 45, 0.95), rgba(5, 25, 45, 0.48) 58%, rgba(5, 25, 45, 0.18)); }
+.weather-current, .weather-highlow, .weather-scene { position: absolute; z-index: 1; }
+.weather-current { top: 1.5rem; left: 1.5rem; display: flex; flex-direction: column; align-items: flex-start; }
+.weather-kicker { color: #a8c0d0; font: 600 0.68rem var(--font-mono); letter-spacing: 0.12em; }
+.weather-current b { margin-top: 0.35rem; color: #fff; font: 4.5rem var(--font-serif); line-height: 1; }
+.weather-current strong { margin-top: 0.5rem; color: #fff; font: 1.15rem var(--font-serif); }
+.weather-current > span:last-child { margin-top: 0.25rem; color: #d5e5ee; font-size: 0.78rem; }
+.weather-highlow { right: 1.4rem; bottom: 1.4rem; display: flex; gap: 1rem; color: #d5e5ee; font: 600 0.78rem var(--font-mono); }
+.weather-highlow b { color: #fff; }
+.weather-scene { right: 13%; top: 15%; width: 180px; height: 150px; }
+.weather-sun { position: absolute; top: 0; right: 0; font-size: 4rem; filter: drop-shadow(0 0 22px rgba(255, 211, 93, 0.75)); animation: sunFloat 5s ease-in-out infinite; }
+.weather-cloud { position: absolute; left: 0; bottom: 2rem; font-size: 5rem; filter: drop-shadow(0 10px 16px rgba(1, 15, 28, 0.35)); animation: cloudDrift 7s ease-in-out infinite; }
+.weather-rain { display: none; position: absolute; left: 2.8rem; bottom: -0.3rem; color: #8ed9f2; font: 2rem var(--font-mono); letter-spacing: 0.5rem; animation: rainFall 1.2s linear infinite; }
+.weather-scene.rainy .weather-rain { display: block; }
+.weather-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid rgba(107, 174, 214, 0.16); }
+.weather-stat-row div { padding: 0.9rem 1rem; border-right: 1px solid rgba(107, 174, 214, 0.14); }
+.weather-stat-row div:last-child { border-right: 0; }
+.weather-stat-row span { display: block; color: #a8c0d0; font-size: 0.68rem; }
+.weather-stat-row b { display: block; margin-top: 0.28rem; color: #f4f7f8; font: 600 0.88rem var(--font-mono); }
+.hourly-strip { display: grid; grid-template-columns: repeat(8, minmax(70px, 1fr)); gap: 0.5rem; overflow-x: auto; padding: 1rem 1.2rem; }
+.hour-card { min-width: 70px; padding: 0.65rem 0.35rem; text-align: center; border: 1px solid rgba(107, 174, 214, 0.16); border-radius: 8px; background: rgba(15, 50, 78, 0.44); transition: transform 0.2s ease, border-color 0.2s ease; }
+.hour-card:hover { transform: translateY(-3px); border-color: #6baed6; }
+.hour-card span { display: block; color: #a8c0d0; font-size: 0.68rem; }
+.hour-card b { display: block; margin: 0.45rem 0; font-size: 1.15rem; }
+.hour-card strong { color: #f4f7f8; font: 600 0.82rem var(--font-mono); }
+@keyframes sunFloat { 50% { transform: translateY(-7px) rotate(8deg); } }
+@keyframes cloudDrift { 50% { transform: translateX(9px); } }
+@keyframes rainFall { to { transform: translateY(10px); opacity: 0.35; } }
+.light-mode .weather-hero-shade { background: linear-gradient(90deg, rgba(16, 52, 76, 0.88), rgba(16, 52, 76, 0.35) 58%, rgba(16, 52, 76, 0.08)); }
+.light-mode .weather-stat-row { border-bottom-color: #e8edf1; }
+.light-mode .weather-stat-row div { border-right-color: #e8edf1; }
+.light-mode .weather-stat-row span, .light-mode .hour-card span { color: #65727c; }
+.light-mode .weather-stat-row b, .light-mode .hour-card strong { color: #102a43; }
+.light-mode .hour-card { background: #f7f9fa; border-color: #e8edf1; }
+@media (max-width: 760px) { .weather-scene { right: 4%; transform: scale(0.75); transform-origin: right top; } .weather-current b { font-size: 3.6rem; } .weather-stat-row { grid-template-columns: repeat(2, 1fr); } .weather-stat-row div:nth-child(2) { border-right: 0; } .weather-stat-row div:nth-child(-n+2) { border-bottom: 1px solid rgba(107, 174, 214, 0.14); } .hourly-strip { grid-template-columns: repeat(8, 70px); } }
