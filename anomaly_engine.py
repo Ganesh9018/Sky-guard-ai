@@ -75,6 +75,9 @@ class StationState:
     station_id: str
     lat: float = 0.0
     lng: float = 0.0
+    name: str = ""
+    state: str = ""
+    region: str = ""
     baseline: dict = field(default_factory=dict)     # param -> dict
     health: dict = field(default_factory=lambda: {
         "drift": 0.0, "faults": 0, "samples": 0, "uptime": 100.0
@@ -92,12 +95,45 @@ class AnomalyEngine:
         self.stations: dict[str, StationState] = {}
 
     # ---------------- station registry ----------------
-    def register_station(self, station_id: str, lat: float, lng: float):
-        st = StationState(station_id, lat, lng)
+    def register_station(self, station_id: str, lat: float, lng: float, name: str = "", state: str = "", region: str = ""):
+        st = StationState(station_id, lat, lng, name=name, state=state, region=region)
         for p in PHYSICAL_LIMITS:
             st.baseline[p] = {"ewma": None, "sd": None, "n": 0, "hourly": {}}
         self.stations[station_id] = st
         return st
+
+    def search_stations(self, query: str):
+        q = (query or "").strip().lower()
+        if not q:
+            return [
+                {
+                    "station_id": s.station_id,
+                    "name": s.name or s.station_id,
+                    "state": s.state,
+                    "region": s.region,
+                    "lat": s.lat,
+                    "lng": s.lng,
+                }
+                for s in self.stations.values()
+            ]
+        matches = []
+        for s in self.stations.values():
+            haystack = " ".join([
+                s.station_id,
+                s.name or "",
+                s.state or "",
+                s.region or "",
+            ]).lower()
+            if q in haystack:
+                matches.append({
+                    "station_id": s.station_id,
+                    "name": s.name or s.station_id,
+                    "state": s.state,
+                    "region": s.region,
+                    "lat": s.lat,
+                    "lng": s.lng,
+                })
+        return matches
 
     # ---------------- learning ----------------
     def _learn(self, st: StationState, param: str, value: float, hour: int):
@@ -138,13 +174,13 @@ class AnomalyEngine:
         vals = {"temperature": r.temperature, "humidity": r.humidity, "pressure": r.pressure}
         for p, v in vals.items():
             b = st.baseline[p]
-            if b["n"] < 8:
+            if b["n"] < 6:
                 continue
-            sd = b["sd"] or 0.001
+            sd = max(b["sd"] or 0.001, 0.25)
             seas = self._seasonal_mean(st, p, hour)
-            # Compare against the seasonal expectation when available
-            # (handles diurnal cycles); fall back to the EWMA baseline.
             reference = seas if seas is not None else b["ewma"]
+            if reference is None:
+                continue
             z = abs((v - reference) / sd)
             if z >= self.z_threshold:
                 if seas is not None:
@@ -170,10 +206,12 @@ class AnomalyEngine:
         vals = {"temperature": r.temperature, "humidity": r.humidity, "pressure": r.pressure}
         for p, v in vals.items():
             nv = [s.last_good[p] for s in neighbors if s.last_good is not None]
+            if len(nv) < MIN_NEIGHBORS:
+                continue
             mean = statistics.mean(nv)
-            spread = statistics.pstdev(nv) or 0.001
-            z = abs((v - mean) / (spread * 1.6))
-            if z >= self.z_threshold + 0.5:
+            spread = statistics.pstdev(nv) or 0.55
+            z = abs((v - mean) / max(spread * 1.2, 0.5))
+            if z >= self.z_threshold + 0.4:
                 issues.append((p, f"{PARAM_LABEL[p]} {v:.1f}{PARAM_UNIT[p]} disagrees with {len(neighbors)} neighbors (avg {mean:.1f}{PARAM_UNIT[p]}, {z:.1f}σ)"))
         return issues
 
@@ -181,20 +219,19 @@ class AnomalyEngine:
     def _l4_multivariate(self, st: StationState, r: Reading, recent: list[Reading]):
         issues = []
         t, h, p = r.temperature, r.humidity, r.pressure
-        # Dewpoint coherence (approximation)
         dp = t - (100 - h) / 5
         if t >= 45 and h >= 85:
             issues.append(("temperature", f"Physics conflict: {t:.0f}°C with {h:.0f}% RH implausible (dewpoint {dp:.0f}°C ≥ T)"))
-        # Pressure drop without storm response (compare vs previous reading)
         if recent:
             drop = recent[-1].pressure - p
-            if drop >= 5:
+            if drop >= 5 and abs(r.temperature - recent[-1].temperature) < 3:
                 issues.append(("pressure", f"Pressure fell {drop:.1f} hPa in one interval — verify against wind/rain response"))
-        # Frozen sensor
         if len(recent) >= 8:
             tail = recent[-8:]
             if all(abs(x.temperature - tail[-1].temperature) < 1e-6 for x in tail):
                 issues.append(("temperature", "Frozen value: temperature unchanged for 8+ consecutive samples → stuck sensor"))
+        if abs(t - (recent[-1].temperature if recent else t)) > 18 and h > 85 and p < 1010:
+            issues.append(("temperature", "Rapid heat rise with high humidity and falling pressure suggests sensor spike or storm front"))
         return issues
 
     def _extract_z(self, msg: str) -> float:
@@ -268,8 +305,8 @@ class AnomalyEngine:
         }
         frozen = any("Frozen" in m for _, m in layers["L4"])
 
-        # weighted fusion score — strength scales with issue count and
-        # how far the worst z-score exceeds the threshold
+        # weighted fusion score — stronger influence from confirmed real spikes,
+        # while keeping spatial and temporal disagreement sensitive and stable.
         score = 0.0
         for name, issues in layers.items():
             if not issues:
@@ -281,6 +318,9 @@ class AnomalyEngine:
                 zmax = max(self._extract_z(m) for _, m in issues)
                 strength = min(1.0, zmax / (self.z_threshold + 1.5))
                 score += w * strength
+
+        if any("deviates" in msg or "disagrees" in msg for _, msg in layers["L2"] + layers["L3"]):
+            score += 0.06
 
         layers_hit = [k for k, v in layers.items() if v]
 
