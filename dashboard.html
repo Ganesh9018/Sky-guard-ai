@@ -30,6 +30,7 @@
 
     <div class="dash-user">
       <div class="clock" id="liveClock">--:--:--</div>
+      <button class="theme-toggle" id="themeToggle" type="button" title="Switch to light mode" aria-label="Switch to light mode">☀️</button>
       <div class="user-chip" id="userChip">
         <span class="avatar" id="userAvatar">?</span>
         <span class="user-name" id="userName">Guest</span>
@@ -131,6 +132,11 @@
             <span class="chart-station" id="dataSourceLabel">Data source: local India fallback</span>
           </div>
           <div id="map"></div>
+          <div class="map-summary">
+            <div><span>Visible stations</span><b id="mapStationCount">--</b></div>
+            <div><span>Network coverage</span><b id="mapCoverage">--%</b></div>
+            <div><span>Map status</span><b class="map-ok">Live</b></div>
+          </div>
         </div>
 
         <!-- Station detail -->

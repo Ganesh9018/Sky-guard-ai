@@ -938,3 +938,57 @@ tbody tr:hover { background: rgba(107, 174, 214, 0.1); }
   .maintenance-score { width: 100%; }
   .report-note { flex-direction: column; }
 }
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(107, 174, 214, 0.3);
+  border-radius: 9px;
+  background: rgba(15, 50, 78, 0.72);
+  color: #f4f7f8;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.theme-toggle:hover { transform: translateY(-2px); background: #d99532; }
+.map-summary { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(107, 174, 214, 0.18); }
+.map-summary div { padding: 0.8rem 1rem; border-right: 1px solid rgba(107, 174, 214, 0.14); }
+.map-summary div:last-child { border-right: 0; }
+.map-summary span { display: block; color: #a8c0d0; font-size: 0.68rem; }
+.map-summary b { display: block; margin-top: 0.25rem; color: #f4f7f8; font: 600 0.86rem var(--font-mono); }
+.map-summary .map-ok { color: #8fd1ae; }
+
+.light-mode { background: #f6f4ef; color: #202124; }
+.light-mode::before { background: radial-gradient(700px 500px at 18% 12%, rgba(107, 174, 214, 0.18), transparent 68%), radial-gradient(580px 500px at 92% 80%, rgba(217, 149, 50, 0.1), transparent 70%), linear-gradient(135deg, #f6f4ef, #eef3f6); }
+.light-mode::after { background-image: linear-gradient(rgba(23, 74, 110, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 74, 110, 0.045) 1px, transparent 1px); }
+.light-mode .dash-header { background: rgba(255, 255, 255, 0.94); border-bottom-color: #e8edf1; }
+.light-mode .dash-logo, .light-mode .panel-head h3, .light-mode .side-threshold h4, .light-mode .page-heading h1 { color: #102a43; }
+.light-mode .dash-search, .light-mode .user-chip, .light-mode .theme-toggle { background: #f7f9fa; border-color: #d9e2e8; color: #174a6e; }
+.light-mode .dash-search input, .light-mode .clock { color: #202124; }
+.light-mode .clock, .light-mode .dash-search input::placeholder, .light-mode .page-heading p:not(.eyebrow), .light-mode .kpi-label, .light-mode .kpi-sub { color: #65727c; }
+.light-mode .side-nav, .light-mode .side-threshold, .light-mode .border-anim, .light-mode .border-glow { background: rgba(255, 255, 255, 0.94); border-color: #e8edf1; box-shadow: 0 3px 16px rgba(16, 42, 67, 0.05); }
+.light-mode .side-btn { color: #65727c; }
+.light-mode .side-btn.active { color: #102a43; background: rgba(16, 42, 67, 0.06); }
+.light-mode .side-threshold, .light-mode .range-label, .light-mode .hint { color: #65727c; }
+.light-mode .kpi-value, .light-mode .reading .r-value, .light-mode .maintenance-row b, .light-mode .readiness b, .light-mode .report-summary b, .light-mode .map-summary b, .light-mode .activity-row b { color: #102a43; }
+.light-mode .tool-btn, .light-mode .tool-select { color: #174a6e; background: #fff; border-color: #d9e2e8; }
+.light-mode .reading, .light-mode .eval-cell, .light-mode .readiness div { background: #f7f9fa; border-color: #e8edf1; }
+.light-mode .reading .r-label, .light-mode .mini-h, .light-mode .conf-row, .light-mode .evidence, .light-mode .activity-row small, .light-mode .map-summary span { color: #65727c; }
+.light-mode .map-summary { border-top-color: #e8edf1; }
+.light-mode .map-summary div { border-right-color: #e8edf1; }
+.light-mode .report-summary { background: #e8edf1; border-color: #e8edf1; }
+.light-mode .report-summary div, .light-mode thead th { background: #fff; }
+.light-mode thead th { color: #65727c; border-bottom-color: #e8edf1; }
+.light-mode tbody td { border-bottom-color: #eef2f4; }
+.light-mode .activity-row { border-bottom-color: #eef2f4; }
+.light-mode .alert-item.critical { border-color: rgba(200, 93, 58, 0.35); background: rgba(200, 93, 58, 0.07); }
+.light-mode .alert-item.warning { border-color: rgba(217, 149, 50, 0.35); background: rgba(217, 149, 50, 0.08); }
+.light-mode #map { background: #e8edf1; }
+.light-mode .leaflet-container { background: #e8edf1; }
+.light-mode .leaflet-tile { filter: saturate(0.7) brightness(1.03); }
+.light-mode .leaflet-popup-content-wrapper, .light-mode .leaflet-popup-tip { background: #fff; color: #202124; border-color: #e8edf1; }
+.light-mode .map-summary .map-ok { color: #3f8062; }
+
+@media (max-width: 480px) { .map-summary span { font-size: 0.61rem; } .map-summary div { padding: 0.7rem 0.55rem; } }

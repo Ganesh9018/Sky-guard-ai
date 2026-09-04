@@ -111,6 +111,7 @@ let showHeat = true;
 let showLabels = true;
 let currentRegion = "india";
 const history = {};            // id -> [{t,h,p,w,r,ts}]
+const chartHistory = {};       // id -> temperature samples shown in the trend chart
 const MAX_HISTORY = 90;
 
 /* Evaluation metrics (fault-injection lab) */
@@ -293,13 +294,16 @@ const AI = {
   /* Root-cause classifier */
   classify(s, f) {
     const keys = new Set([...f.phys, ...f.temp, ...f.spat, ...f.mult].map(i => i.k));
+    const evidence = [...f.phys, ...f.temp, ...f.spat, ...f.mult].map((item) => item.msg.toLowerCase()).join(" ");
+    if (s.offline) return { code: "COMMUNICATION_LOSS", label: "Communication Loss", action: "Check gateway, power, antenna, and network link" };
     if (f.frozen) return { code: "STUCK_SENSOR", label: "Stuck/Frozen Sensor", action: "Restart datalogger; check sensor cable & ADC" };
-    if (keys.has("t") && keys.has("h") && f.mult.length) return { code: "SENSOR_FAULT", label: "Multi-Sensor Fault", action: "Recalibrate station; verify RH + T probes" };
-    if (f.spat.length && !f.temp.length) return { code: "SPATIAL_OUTLIER", label: "Spatial Outlier (likely sensor)", action: "Cross-check with neighbor stations; inspect sensor" };
+    if (f.phys.length) return { code: "RANGE_VIOLATION", label: "Physical Range Violation", action: "Check sensor wiring, calibration, and datalogger limits" };
+    if (evidence.includes("pressure fell") || evidence.includes("pressure drop")) return { code: "PRESSURE_CONFLICT", label: "Pressure Pattern Conflict", action: "Compare with nearby stations and inspect the pressure sensor" };
     if (f.temp.length && f.spat.length) return { code: "SENSOR_FAULT", label: "Sensor Fault (temporal+spatial)", action: "Schedule calibration; flag data as suspect" };
+    if (f.spat.length && !f.temp.length) return { code: "SPATIAL_OUTLIER", label: "Spatial Outlier (likely sensor)", action: "Cross-check with neighbor stations; inspect sensor" };
     if (f.spat.length) return { code: "SPATIAL_OUTLIER", label: "Spatial Outlier", action: "Verify against neighbors before use" };
-    if (f.temp.length && !f.spat.length) return { code: "REAL_EVENT", label: "Possible Real Weather Event", action: "Monitor — no spatial disagreement; may be genuine microburst/heat spike" };
-    if (f.phys.length) return { code: "RANGE_VIOLATION", label: "Range Violation", action: "Check sensor wiring / datalogger config" };
+    if (f.temp.length && !f.spat.length) return { code: "WEATHER_EVENT", label: "Possible Weather Event", action: "Monitor nearby stations and confirm with radar or forecast data" };
+    if (keys.has("t") && keys.has("h") && f.mult.length) return { code: "SENSOR_FAULT", label: "Multi-Sensor Fault", action: "Recalibrate station; verify RH + T probes" };
     return { code: "OK", label: "Nominal", action: "None" };
   },
 
@@ -352,6 +356,7 @@ const FaultLab = {
     this.active = { type, stationId: s.id, ticksLeft: type === "drift" ? 25 : 10, origin: { ...s.reading } };
     evalState.injected++;
     evalState.log.push({ t: Date.now(), type, station: s.id });
+    updateEvalPanel();
     toast(`🧪 Injected ${type.toUpperCase()} fault at ${s.name} — AI detection is active`, "info");
     if (selectedId !== s.id) selectStation(s.id);
   },
@@ -428,6 +433,9 @@ function tick() {
     if (!history[s.id]) history[s.id] = [];
     history[s.id].push({ ...s.reading, ts: Date.now() });
     if (history[s.id].length > MAX_HISTORY) history[s.id].shift();
+    if (!chartHistory[s.id]) chartHistory[s.id] = [];
+    chartHistory[s.id].push({ t: s.reading.t, ts: Date.now() });
+    if (chartHistory[s.id].length > MAX_HISTORY) chartHistory[s.id].shift();
   });
 
   renderMarkers();
@@ -623,6 +631,8 @@ function updateWorkspaceData() {
 
   const quality = stations.length ? Math.round(stations.reduce((sum, station) => sum + AI.healthScore(station.id), 0) / stations.length) : 0;
   const reporting = stations.length ? Math.round((active.length / stations.length) * 100) : 0;
+  if ($("mapStationCount")) $("mapStationCount").textContent = String(stations.length);
+  if ($("mapCoverage")) $("mapCoverage").textContent = `${reporting}%`;
   $("qualityScore")?.replaceChildren(document.createTextNode(`${quality}%`));
   $("reportingScore")?.replaceChildren(document.createTextNode(`${reporting}%`));
   $("reviewScore")?.replaceChildren(document.createTextNode(String(stations.length - ready)));
@@ -668,20 +678,19 @@ function drawChart() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = cssW, H = cssH;
 
-  let series, series2, label;
-  if (selectedId && history[selectedId]) {
-    const h = history[selectedId];
+  let series, label;
+  if (selectedId && chartHistory[selectedId]) {
+    const h = chartHistory[selectedId];
     series = h.map((r) => r.t);
-    series2 = h.map((r) => r.p / 10);   // pressure /10 for overlay
     label = stations.find((s) => s.id === selectedId)?.name || selectedId;
   } else {
-    const hs = Object.values(history);
+    const hs = Object.values(chartHistory);
     const len = Math.max(0, ...hs.map((h) => h.length));
-    series = []; series2 = [];
+    series = [];
     for (let i = 0; i < len; i++) {
-      let st = 0, sp = 0, n = 0;
-      hs.forEach((h) => { if (h[i]) { st += h[i].t; sp += h[i].p / 10; n++; } });
-      if (n) { series.push(st / n); series2.push(sp / n); }
+      let st = 0, n = 0;
+      hs.forEach((h) => { if (h[i]) { st += h[i].t; n++; } });
+      if (n) series.push(st / n);
     }
     label = "Network average";
   }
@@ -693,8 +702,7 @@ function drawChart() {
     ctx.fillText("Collecting telemetry…", 20, H / 2);
     return;
   }
-  const all = [...series, ...series2];
-  const min = Math.min(...all) - 0.8, max = Math.max(...all) + 0.8;
+  const min = Math.min(...series) - 0.8, max = Math.max(...series) + 0.8;
   const px = (i) => (i / (series.length - 1)) * (W - 40) + 20;
   const py = (v) => H - 24 - ((v - min) / (max - min)) * (H - 44);
 
@@ -716,7 +724,6 @@ function drawChart() {
     ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.shadowColor = color; ctx.shadowBlur = 6;
     ctx.stroke(); ctx.shadowBlur = 0;
   };
-  plot(series2, "rgba(124,92,255,0.55)", null);
   plot(series, "#00d4ff", "rgba(0,212,255,0.30)");
 
   const lx = px(series.length - 1), ly = py(series[series.length - 1]);
@@ -752,7 +759,14 @@ function drawChart() {
   const ds = $('dataSourceLabel');
   if (ds) ds.textContent = sourceLabel;
 
-  stations.forEach((st) => { AI.initBaseline(st); AI.initHealth(st); history[st.id] = []; });
+  stations.forEach((st) => {
+    AI.initBaseline(st);
+    AI.initHealth(st);
+    history[st.id] = [];
+    chartHistory[st.id] = Array.from({ length: 24 }, (_, hour) => ({
+      t: Number(st.base?.t ?? 26) + Math.sin((hour / 24) * Math.PI * 2 - 1.2) * 1.8 + rand(-0.35, 0.35)
+    }));
+  });
   selectedId = null;
   $("detailStatus").className = "status-pill";
   $("detailStatus").textContent = "Select a station";
@@ -772,6 +786,23 @@ function drawChart() {
 
 /* ---------------- Clock ---------------- */
 setInterval(() => { $("liveClock").textContent = new Date().toLocaleTimeString(); }, 1000);
+
+/* ---------------- Theme ---------------- */
+function applyTheme(light) {
+  document.body.classList.toggle("light-mode", light);
+  const toggle = $("themeToggle");
+  if (!toggle) return;
+  toggle.textContent = light ? "🌙" : "☀️";
+  toggle.title = light ? "Switch to dark mode" : "Switch to light mode";
+  toggle.setAttribute("aria-label", toggle.title);
+}
+
+applyTheme(localStorage.getItem("skyguard_theme") === "light");
+$("themeToggle")?.addEventListener("click", () => {
+  const light = !document.body.classList.contains("light-mode");
+  applyTheme(light);
+  localStorage.setItem("skyguard_theme", light ? "light" : "dark");
+});
 
 /* ---------------- Controls ---------------- */
 $("regionSelect").addEventListener("change", (e) => loadRegion(e.target.value));
