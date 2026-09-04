@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkyWatch — Live Anomaly Dashboard</title>
+  <title>SkyGuard — Live Network Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="dashboard.css">
@@ -16,13 +19,13 @@
   <header class="dash-header">
     <div class="dash-logo">
       <span class="logo-mark">⛈</span>
-      <span>Sky<span class="gradient-text">Watch</span></span>
+      <span>SKY<span class="gradient-text">GUARD</span></span>
       <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
     </div>
 
     <div class="dash-search">
       <span>🔍</span>
-      <input type="text" id="stationSearch" placeholder="Search stations, e.g. Mumbai, Delhi…">
+      <input type="text" id="stationSearch" placeholder="Search city, state, or station (e.g. Bengaluru, Delhi, Mumbai)…">
     </div>
 
     <div class="dash-user">
@@ -41,33 +44,32 @@
     <aside class="sidebar">
       <nav class="side-nav">
         <button class="side-btn active" data-view="overview" title="Overview">📊<span>Overview</span></button>
-        <button class="side-btn" data-view="stations" title="Stations">📡<span>Stations</span></button>
-        <button class="side-btn" data-view="alerts" title="Alerts">🚨<span>Alerts</span></button>
-        <button class="side-btn" data-view="analytics" title="Analytics">📈<span>Analytics</span></button>
+        <button class="side-btn" data-view="map" title="Live map">🗺️<span>Live Map</span></button>
+        <button class="side-btn" data-view="maintenance" title="Maintenance">🛠️<span>Maintenance</span></button>
+        <button class="side-btn" data-view="analysis" title="Analysis">📈<span>Analysis</span></button>
+        <button class="side-btn" data-view="reports" title="Reports">📄<span>Reports</span></button>
       </nav>
-      <div class="side-legend border-dash">
-        <h4>Map Legend</h4>
-        <div class="legend-row"><span class="lg-dot ok"></span> Normal</div>
-        <div class="legend-row"><span class="lg-dot warn"></span> Warning</div>
-        <div class="legend-row"><span class="lg-dot danger"></span> Anomaly</div>
-        <div class="legend-row"><span class="lg-dot offline"></span> Offline</div>
-      </div>
       <div class="side-threshold border-glow">
         <h4>⚙️ Detection Sensitivity</h4>
         <label class="range-label">Z-Score Threshold: <b id="zLabel">2.5σ</b></label>
         <input type="range" id="zSlider" min="1.5" max="4" step="0.1" value="2.5">
         <p class="hint">Lower = more sensitive. Anomalies re-score instantly.</p>
       </div>
-      <div class="side-threshold border-dash">
-        <h4>🩺 Sensor Health</h4>
-        <div class="health-list" id="healthList"></div>
-      </div>
     </aside>
 
     <!-- Content column -->
     <section class="content">
       <!-- KPI cards -->
-      <div class="kpi-row">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">NETWORK CONTROL CENTER</p>
+          <h1 id="pageTitle">Dashboard Overview</h1>
+          <p id="pageSubtitle">A live view of station health, alerts, and weather telemetry.</p>
+        </div>
+        <div class="sync-status"><span class="pulse-dot"></span><span>Live network</span><b id="lastSync">--:--</b></div>
+      </div>
+
+      <div class="kpi-row" data-dashboard-view="overview">
         <div class="kpi border-anim rise" style="animation-delay:0.05s">
           <div class="kpi-top"><span class="kpi-icon">📡</span><span class="kpi-label">Active Stations</span></div>
           <div class="kpi-value" id="kpiStations">0</div>
@@ -90,23 +92,43 @@
         </div>
       </div>
 
+      <div class="overview-grid" data-dashboard-view="overview">
+        <div class="table-panel border-anim overview-card">
+          <div class="panel-head"><div><p class="eyebrow">NETWORK PULSE</p><h3>Quality at a glance</h3></div><span class="status-pill ok">Stable</span></div>
+          <div class="pulse-metrics">
+            <div class="pulse-metric"><span>Data quality</span><b id="qualityScore">--%</b><i><em id="qualityBar"></em></i></div>
+            <div class="pulse-metric"><span>Reporting now</span><b id="reportingScore">--%</b><i><em id="reportingBar"></em></i></div>
+            <div class="pulse-metric"><span>Stations to review</span><b id="reviewScore">--</b><small>based on current health</small></div>
+          </div>
+        </div>
+        <div class="table-panel border-anim overview-card activity-card">
+          <div class="panel-head"><div><p class="eyebrow">ACTIVITY</p><h3>What needs attention</h3></div><span class="chart-station">Live scan</span></div>
+          <div class="activity-list" id="overviewActivity"></div>
+        </div>
+      </div>
+
       <!-- Map + detail panel -->
-      <div class="map-row">
+      <div class="map-row" data-dashboard-view="map">
         <div class="map-panel border-anim rise" style="animation-delay:0.3s">
           <div class="panel-head">
             <h3>🗺️ Station Map — <span id="regionName">Mumbai Region</span></h3>
             <div class="map-tools">
               <select id="regionSelect" class="tool-select">
-                <option value="mumbai">Mumbai</option>
-                <option value="delhi">Delhi NCR</option>
-                <option value="bangalore">Bengaluru</option>
-                <option value="chennai">Chennai</option>
-                <option value="kolkata">Kolkata</option>
+                <option value="india">All India</option>
+                <option value="north">North India</option>
+                <option value="south">South India</option>
+                <option value="west">West India</option>
+                <option value="east">East India</option>
+                <option value="northeast">North-East India</option>
+                <option value="central">Central India</option>
               </select>
               <button class="tool-btn" id="toggleHeat" title="Toggle anomaly heat rings">🔥 Heat</button>
               <button class="tool-btn" id="toggleLabels" title="Toggle station labels">🏷️ Labels</button>
               <button class="tool-btn" id="fitBtn" title="Fit all stations">🎯 Fit</button>
             </div>
+          </div>
+          <div class="panel-head" style="padding-top: 0.6rem; border-bottom: none;">
+            <span class="chart-station" id="dataSourceLabel">Data source: local India fallback</span>
           </div>
           <div id="map"></div>
         </div>
@@ -127,7 +149,7 @@
       </div>
 
       <!-- Charts + alerts -->
-      <div class="bottom-row">
+      <div class="bottom-row" data-dashboard-view="analysis">
         <div class="chart-panel border-anim rise" style="animation-delay:0.45s">
           <div class="panel-head">
             <h3>📈 24h Temperature History</h3>
@@ -149,7 +171,7 @@
       </div>
 
       <!-- Fault injection lab (evaluation) -->
-      <div class="table-panel border-anim rise" style="animation-delay:0.6s">
+      <div class="table-panel border-anim rise" data-dashboard-view="analysis" style="animation-delay:0.6s">
         <div class="panel-head">
           <h3>🧪 Fault-Injection Lab — Evaluate on Anomaly-Injected Data</h3>
           <span class="chart-station">inject a fault, watch the AI detect it</span>
@@ -174,7 +196,7 @@
       </div>
 
       <!-- Stations table -->
-      <div class="table-panel border-anim rise" style="animation-delay:0.55s">
+      <div class="table-panel border-anim rise" data-dashboard-view="map" style="animation-delay:0.55s">
         <div class="panel-head">
           <h3>📡 All Stations</h3>
           <span class="chart-station" id="tableCount"></span>
@@ -190,6 +212,24 @@
             <tbody id="stationTable"></tbody>
           </table>
         </div>
+      </div>
+
+      <div class="workspace-grid" data-dashboard-view="maintenance">
+        <div class="table-panel border-anim workspace-card">
+          <div class="panel-head"><h3>Maintenance Queue</h3><span class="chart-station">Prioritized by sensor health</span></div>
+          <div class="maintenance-list" id="maintenanceList"></div>
+        </div>
+        <div class="table-panel border-anim workspace-card">
+          <div class="panel-head"><h3>Network Readiness</h3><span class="status-pill ok">Operational</span></div>
+          <div class="readiness"><div><b id="readyCount">0</b><span>stations ready</span></div><div><b id="warningCount">0</b><span>need review</span></div><div><b>24h</b><span>forecast window</span></div></div>
+          <p class="workspace-copy">Use the queue to plan calibration and field visits before data quality drops.</p>
+        </div>
+      </div>
+
+      <div class="report-panel table-panel border-anim" data-dashboard-view="reports">
+        <div class="panel-head"><div><p class="eyebrow">NETWORK REPORT</p><h3>Observation Summary</h3></div><button class="tool-btn" id="printReport">Print report</button></div>
+        <div class="report-summary" id="reportSummary"></div>
+        <div class="report-note"><b>Data provenance</b><span id="reportSource">Waiting for the first telemetry cycle.</span></div>
       </div>
     </section>
   </main>
