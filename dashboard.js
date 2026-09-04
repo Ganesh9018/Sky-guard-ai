@@ -11,75 +11,95 @@
             corrected/imputed values, sensor health & maintenance ETA
    ============================================================ */
 
-/* ---------------- Region data (5 regions, 31 stations) ---------------- */
+/* ---------------- Region data (India-wide network) ---------------- */
+const INDIA_NETWORK = [
+  { id: "DEL-01", name: "Safdarjung", state: "Delhi", region: "North India", lat: 28.586, lng: 77.190, base: { t: 27, h: 55, p: 1010, w: 10, r: 0 } },
+  { id: "DEL-02", name: "Palam Airport", state: "Delhi", region: "North India", lat: 28.566, lng: 77.100, base: { t: 28, h: 52, p: 1009, w: 12, r: 0 } },
+  { id: "DEL-03", name: "Ridge Road", state: "Delhi", region: "North India", lat: 28.635, lng: 77.170, base: { t: 26, h: 58, p: 1011, w: 8, r: 1 } },
+  { id: "CHA-01", name: "Chandigarh Sector 17", state: "Punjab", region: "North India", lat: 30.733, lng: 76.788, base: { t: 25, h: 57, p: 1012, w: 9, r: 0 } },
+  { id: "JAI-01", name: "Jaipur Sanganer", state: "Rajasthan", region: "North India", lat: 26.810, lng: 75.800, base: { t: 28, h: 48, p: 1010, w: 11, r: 0 } },
+  { id: "AMR-01", name: "Amritsar Airport", state: "Punjab", region: "North India", lat: 31.709, lng: 74.797, base: { t: 24, h: 60, p: 1013, w: 10, r: 0 } },
+  { id: "LCN-01", name: "Lucknow Gomti", state: "Uttar Pradesh", region: "North India", lat: 26.847, lng: 80.947, base: { t: 27, h: 53, p: 1011, w: 8, r: 1 } },
+  { id: "DUN-01", name: "Dehradun", state: "Uttarakhand", region: "North India", lat: 30.316, lng: 78.032, base: { t: 23, h: 62, p: 1012, w: 7, r: 1 } },
+  { id: "SRI-01", name: "Srinagar Airport", state: "Jammu & Kashmir", region: "North India", lat: 34.083, lng: 74.797, base: { t: 18, h: 64, p: 1014, w: 6, r: 2 } },
+
+  { id: "MUM-01", name: "Colaba Observatory", state: "Maharashtra", region: "West India", lat: 18.906, lng: 72.815, base: { t: 29, h: 78, p: 1008, w: 12, r: 2 } },
+  { id: "MUM-02", name: "Santacruz Airport", state: "Maharashtra", region: "West India", lat: 19.088, lng: 72.852, base: { t: 30, h: 74, p: 1007, w: 10, r: 1 } },
+  { id: "MUM-03", name: "Bandra Station", state: "Maharashtra", region: "West India", lat: 19.055, lng: 72.840, base: { t: 30, h: 76, p: 1008, w: 14, r: 0 } },
+  { id: "PUN-01", name: "Pune Airport", state: "Maharashtra", region: "West India", lat: 18.579, lng: 73.908, base: { t: 26, h: 59, p: 1010, w: 9, r: 1 } },
+  { id: "NAG-01", name: "Nagpur Sadar", state: "Maharashtra", region: "Central India", lat: 21.146, lng: 79.084, base: { t: 29, h: 52, p: 1010, w: 10, r: 1 } },
+  { id: "AHD-01", name: "Ahmedabad Airport", state: "Gujarat", region: "West India", lat: 23.078, lng: 72.634, base: { t: 30, h: 49, p: 1009, w: 13, r: 0 } },
+  { id: "SUR-01", name: "Surat City", state: "Gujarat", region: "West India", lat: 21.170, lng: 72.831, base: { t: 31, h: 55, p: 1008, w: 14, r: 1 } },
+  { id: "RAJ-01", name: "Rajkot Airport", state: "Gujarat", region: "West India", lat: 22.309, lng: 70.802, base: { t: 29, h: 52, p: 1009, w: 12, r: 0 } },
+  { id: "GOA-01", name: "Panaji", state: "Goa", region: "West India", lat: 15.49, lng: 73.827, base: { t: 29, h: 70, p: 1010, w: 11, r: 2 } },
+  { id: "BPL-01", name: "Bhopal Airport", state: "Madhya Pradesh", region: "Central India", lat: 23.287, lng: 77.337, base: { t: 27, h: 50, p: 1011, w: 8, r: 0 } },
+  { id: "IND-01", name: "Indore Airport", state: "Madhya Pradesh", region: "Central India", lat: 22.721, lng: 75.801, base: { t: 26, h: 45, p: 1012, w: 9, r: 0 } },
+
+  { id: "BLR-01", name: "Kempegowda Airport", state: "Karnataka", region: "South India", lat: 13.197, lng: 77.706, base: { t: 24, h: 62, p: 1013, w: 12, r: 1 } },
+  { id: "BLR-02", name: "HAL Airport", state: "Karnataka", region: "South India", lat: 12.959, lng: 77.648, base: { t: 24, h: 64, p: 1013, w: 10, r: 0 } },
+  { id: "BLR-03", name: "Whitefield", state: "Karnataka", region: "South India", lat: 12.969, lng: 77.749, base: { t: 25, h: 60, p: 1012, w: 9, r: 0 } },
+  { id: "CHE-01", name: "Nungambakkam", state: "Tamil Nadu", region: "South India", lat: 13.067, lng: 80.243, base: { t: 31, h: 70, p: 1009, w: 14, r: 1 } },
+  { id: "CHE-02", name: "Meenambakkam Airport", state: "Tamil Nadu", region: "South India", lat: 12.990, lng: 80.170, base: { t: 32, h: 68, p: 1008, w: 12, r: 0 } },
+  { id: "COI-01", name: "Coimbatore Airport", state: "Tamil Nadu", region: "South India", lat: 11.031, lng: 76.966, base: { t: 28, h: 64, p: 1011, w: 10, r: 0 } },
+  { id: "HYD-01", name: "Begumpet Airport", state: "Telangana", region: "South India", lat: 17.453, lng: 78.467, base: { t: 28, h: 58, p: 1010, w: 11, r: 1 } },
+  { id: "TVM-01", name: "Thiruvananthapuram", state: "Kerala", region: "South India", lat: 8.524, lng: 76.936, base: { t: 29, h: 72, p: 1010, w: 15, r: 3 } },
+  { id: "KOC-01", name: "Kochi Aluva", state: "Kerala", region: "South India", lat: 10.030, lng: 76.331, base: { t: 30, h: 74, p: 1009, w: 14, r: 2 } },
+  { id: "VJA-01", name: "Vijayawada Airport", state: "Andhra Pradesh", region: "South India", lat: 16.518, lng: 80.648, base: { t: 30, h: 61, p: 1011, w: 12, r: 1 } },
+  { id: "VIZ-01", name: "Visakhapatnam Airport", state: "Andhra Pradesh", region: "South India", lat: 17.727, lng: 83.224, base: { t: 30, h: 66, p: 1011, w: 13, r: 1 } },
+
+  { id: "KOL-01", name: "Alipore", state: "West Bengal", region: "East India", lat: 22.530, lng: 88.320, base: { t: 30, h: 74, p: 1008, w: 10, r: 2 } },
+  { id: "KOL-02", name: "Dum Dum Airport", state: "West Bengal", region: "East India", lat: 22.645, lng: 88.428, base: { t: 31, h: 72, p: 1007, w: 12, r: 1 } },
+  { id: "PAT-01", name: "Patna Airport", state: "Bihar", region: "East India", lat: 25.594, lng: 85.091, base: { t: 29, h: 56, p: 1010, w: 9, r: 1 } },
+  { id: "BBS-01", name: "Bhubaneswar Airport", state: "Odisha", region: "East India", lat: 20.249, lng: 85.812, base: { t: 30, h: 67, p: 1009, w: 11, r: 1 } },
+  { id: "RNC-01", name: "Ranchi Airport", state: "Jharkhand", region: "East India", lat: 23.315, lng: 85.321, base: { t: 27, h: 55, p: 1010, w: 10, r: 1 } },
+  { id: "GAY-01", name: "Gaya Airport", state: "Bihar", region: "East India", lat: 24.744, lng: 84.951, base: { t: 29, h: 58, p: 1010, w: 8, r: 0 } },
+  { id: "SIL-01", name: "Siliguri", state: "West Bengal", region: "North-East India", lat: 26.727, lng: 88.395, base: { t: 27, h: 72, p: 1010, w: 7, r: 2 } },
+
+  { id: "GUA-01", name: "Guwahati Airport", state: "Assam", region: "North-East India", lat: 26.106, lng: 91.585, base: { t: 27, h: 74, p: 1009, w: 8, r: 3 } },
+  { id: "DIB-01", name: "Dibrugarh Airport", state: "Assam", region: "North-East India", lat: 27.483, lng: 95.016, base: { t: 26, h: 77, p: 1008, w: 7, r: 4 } },
+  { id: "SHL-01", name: "Shillong Airport", state: "Meghalaya", region: "North-East India", lat: 25.561, lng: 91.886, base: { t: 21, h: 76, p: 1011, w: 7, r: 5 } },
+  { id: "IMP-01", name: "Imphal Airport", state: "Manipur", region: "North-East India", lat: 24.760, lng: 93.896, base: { t: 24, h: 70, p: 1011, w: 9, r: 3 } },
+  { id: "AGT-01", name: "Agartala Airport", state: "Tripura", region: "North-East India", lat: 23.890, lng: 91.259, base: { t: 27, h: 74, p: 1010, w: 8, r: 3 } },
+  { id: "ITN-01", name: "Itanagar Airport", state: "Arunachal Pradesh", region: "North-East India", lat: 27.55, lng: 93.867, base: { t: 24, h: 70, p: 1011, w: 7, r: 3 } },
+  { id: "GAN-01", name: "Gangtok", state: "Sikkim", region: "North-East India", lat: 27.332, lng: 88.614, base: { t: 18, h: 68, p: 1012, w: 6, r: 3 } },
+  { id: "KOH-01", name: "Kohima Airport", state: "Nagaland", region: "North-East India", lat: 25.666, lng: 94.107, base: { t: 23, h: 72, p: 1011, w: 8, r: 4 } }
+];
+
 const REGIONS = {
-  mumbai: {
-    name: "Mumbai Region",
-    center: [19.05, 72.95],
-    zoom: 10,
-    stations: [
-      { id: "MUM-01", name: "Colaba Observatory", lat: 18.906, lng: 72.815, base: { t: 29, h: 78, p: 1008, w: 12, r: 2 } },
-      { id: "MUM-02", name: "Santacruz Airport",   lat: 19.088, lng: 72.852, base: { t: 30, h: 74, p: 1007, w: 10, r: 1 } },
-      { id: "MUM-03", name: "Bandra Station",      lat: 19.055, lng: 72.840, base: { t: 30, h: 76, p: 1008, w: 14, r: 0 } },
-      { id: "MUM-04", name: "Andheri Tech Park",   lat: 19.136, lng: 72.855, base: { t: 31, h: 70, p: 1007, w: 9,  r: 0 } },
-      { id: "MUM-05", name: "Thane Creek",         lat: 19.180, lng: 72.960, base: { t: 29, h: 82, p: 1009, w: 16, r: 3 } },
-      { id: "MUM-06", name: "Navi Mumbai SEZ",     lat: 19.033, lng: 73.020, base: { t: 31, h: 71, p: 1007, w: 11, r: 1 } },
-      { id: "MUM-07", name: "Powai Lake",          lat: 19.117, lng: 72.905, base: { t: 29, h: 79, p: 1008, w: 8,  r: 2 } },
-      { id: "MUM-08", name: "Vasai Road",          lat: 19.391, lng: 72.839, base: { t: 30, h: 75, p: 1008, w: 13, r: 1 } }
-    ]
-  },
-  delhi: {
-    name: "Delhi NCR Region",
-    center: [28.60, 77.20],
-    zoom: 10,
-    stations: [
-      { id: "DEL-01", name: "Safdarjung",        lat: 28.586, lng: 77.190, base: { t: 27, h: 55, p: 1010, w: 10, r: 0 } },
-      { id: "DEL-02", name: "Palam Airport",     lat: 28.566, lng: 77.100, base: { t: 28, h: 52, p: 1009, w: 12, r: 0 } },
-      { id: "DEL-03", name: "Ridge Road",        lat: 28.635, lng: 77.170, base: { t: 26, h: 58, p: 1011, w: 8,  r: 1 } },
-      { id: "DEL-04", name: "Noida Sector 62",   lat: 28.627, lng: 77.370, base: { t: 28, h: 54, p: 1010, w: 9,  r: 0 } },
-      { id: "DEL-05", name: "Gurugram Cyber City", lat: 28.495, lng: 77.086, base: { t: 29, h: 50, p: 1009, w: 11, r: 0 } },
-      { id: "DEL-06", name: "Dwarka West",       lat: 28.592, lng: 77.046, base: { t: 27, h: 56, p: 1010, w: 14, r: 0 } },
-      { id: "DEL-07", name: "Ghaziabad Indirapuram", lat: 28.645, lng: 77.370, base: { t: 28, h: 57, p: 1010, w: 10, r: 1 } }
-    ]
-  },
-  bangalore: {
-    name: "Bengaluru Region",
-    center: [12.97, 77.60],
-    zoom: 10.5,
-    stations: [
-      { id: "BLR-01", name: "Kempegowda Airport", lat: 13.197, lng: 77.706, base: { t: 24, h: 62, p: 1013, w: 12, r: 1 } },
-      { id: "BLR-02", name: "HAL Airport",        lat: 12.959, lng: 77.648, base: { t: 24, h: 64, p: 1013, w: 10, r: 0 } },
-      { id: "BLR-03", name: "Whitefield",         lat: 12.969, lng: 77.749, base: { t: 25, h: 60, p: 1012, w: 9,  r: 0 } },
-      { id: "BLR-04", name: "Jayanagar",          lat: 12.925, lng: 77.593, base: { t: 24, h: 66, p: 1013, w: 8,  r: 1 } },
-      { id: "BLR-05", name: "Hebbal Lake",        lat: 13.035, lng: 77.597, base: { t: 23, h: 68, p: 1014, w: 11, r: 2 } },
-      { id: "BLR-06", name: "Electronic City",    lat: 12.845, lng: 77.660, base: { t: 25, h: 61, p: 1012, w: 10, r: 0 } }
-    ]
-  },
-  chennai: {
-    name: "Chennai Region",
-    center: [13.05, 80.25],
-    zoom: 10.5,
-    stations: [
-      { id: "CHE-01", name: "Nungambakkam",     lat: 13.067, lng: 80.243, base: { t: 31, h: 70, p: 1009, w: 14, r: 1 } },
-      { id: "CHE-02", name: "Meenambakkam Airport", lat: 12.990, lng: 80.170, base: { t: 32, h: 68, p: 1008, w: 12, r: 0 } },
-      { id: "CHE-03", name: "Marina Beach",     lat: 13.050, lng: 80.282, base: { t: 30, h: 76, p: 1010, w: 18, r: 2 } },
-      { id: "CHE-04", name: "Anna Nagar",       lat: 13.085, lng: 80.210, base: { t: 31, h: 71, p: 1009, w: 11, r: 1 } },
-      { id: "CHE-05", name: "Ennore Port",      lat: 13.208, lng: 80.320, base: { t: 30, h: 78, p: 1010, w: 20, r: 3 } }
-    ]
-  },
-  kolkata: {
-    name: "Kolkata Region",
-    center: [22.58, 88.36],
-    zoom: 10.5,
-    stations: [
-      { id: "KOL-01", name: "Alipore",           lat: 22.530, lng: 88.320, base: { t: 30, h: 74, p: 1008, w: 10, r: 2 } },
-      { id: "KOL-02", name: "Dum Dum Airport",   lat: 22.645, lng: 88.428, base: { t: 31, h: 72, p: 1007, w: 12, r: 1 } },
-      { id: "KOL-03", name: "Salt Lake Sector V", lat: 22.575, lng: 88.432, base: { t: 30, h: 75, p: 1008, w: 9,  r: 2 } },
-      { id: "KOL-04", name: "Howrah Maidan",     lat: 22.588, lng: 88.340, base: { t: 31, h: 73, p: 1007, w: 11, r: 1 } },
-      { id: "KOL-05", name: "Diamond Harbour",   lat: 22.190, lng: 88.190, base: { t: 30, h: 80, p: 1009, w: 16, r: 4 } }
-    ]
-  }
+  india: { name: "All India Network", center: [22.5, 78.96], zoom: 5, stations: INDIA_NETWORK },
+  north: { name: "North India", center: [28.6, 77.2], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "North India") },
+  south: { name: "South India", center: [15.5, 78.5], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "South India") },
+  west: { name: "West India", center: [22.0, 73.5], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "West India") },
+  east: { name: "East India", center: [24.8, 85.0], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "East India") },
+  northeast: { name: "North-East India", center: [26.5, 90.0], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "North-East India") },
+  central: { name: "Central India", center: [23.0, 78.7], zoom: 6, stations: INDIA_NETWORK.filter((s) => s.region === "Central India") }
 };
+
+async function fetchLiveStations() {
+  try {
+    const res = await fetch("/api/imd/stations");
+    if (!res.ok) return null;
+    const payload = await res.json();
+    if (!payload || !Array.isArray(payload.stations) || !payload.stations.length) return null;
+    return payload.stations.map((s) => ({
+      id: s.station_id || s.id,
+      name: s.name || s.station_name || s.station_id || 'Station',
+      state: s.state || 'India',
+      region: s.region || 'India',
+      lat: Number(s.lat ?? s.latitude ?? 0),
+      lng: Number(s.lng ?? s.lon ?? s.longitude ?? 0),
+      base: {
+        t: Number(s.temperature ?? 26),
+        h: Number(s.humidity ?? 60),
+        p: Number(s.pressure ?? 1010),
+        w: Number(s.wind ?? 10),
+        r: Number(s.rain ?? 0)
+      }
+    }));
+  } catch (err) {
+    return null;
+  }
+}
 
 /* ---------------- State ---------------- */
 let map, markerLayer;
@@ -89,7 +109,7 @@ let selectedId = null;
 let zThreshold = 2.5;
 let showHeat = true;
 let showLabels = true;
-let currentRegion = "mumbai";
+let currentRegion = "india";
 const history = {};            // id -> [{t,h,p,w,r,ts}]
 const MAX_HISTORY = 90;
 
@@ -325,14 +345,15 @@ const FaultLab = {
   active: null,   // {type, stationId, ticksLeft}
   types: ["spike", "stuck", "drift", "frozen", "comm_loss", "random_drop"],
 
-  inject(type) {
+  inject(type, stationId = selectedId || null) {
     const online = stations.filter((s) => !s.offline);
     if (!online.length) return;
-    const s = online[Math.floor(Math.random() * online.length)];
+    const s = online.find((x) => x.id === stationId) || online[Math.floor(Math.random() * online.length)];
     this.active = { type, stationId: s.id, ticksLeft: type === "drift" ? 25 : 10, origin: { ...s.reading } };
     evalState.injected++;
     evalState.log.push({ t: Date.now(), type, station: s.id });
-    toast(`🧪 Injected ${type.toUpperCase()} fault at ${s.name} — watch the AI catch it`, "info");
+    toast(`🧪 Injected ${type.toUpperCase()} fault at ${s.name} — AI detection is active`, "info");
+    if (selectedId !== s.id) selectStation(s.id);
   },
 
   tickApply(s) {
@@ -414,6 +435,7 @@ function tick() {
   updateKPIs();
   updateHealthPanel();
   updateEvalPanel();
+  updateWorkspaceData();
   if (selectedId) renderDetail(selectedId);
   drawChart();
 }
@@ -451,7 +473,7 @@ function toast(text, kind = "alert") {
    RENDERING
    ============================================================ */
 function initMap() {
-  map = L.map("map").setView(REGIONS.mumbai.center, REGIONS.mumbai.zoom);
+  map = L.map("map").setView(REGIONS.india.center, REGIONS.india.zoom);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18, attribution: "© OpenStreetMap contributors"
   }).addTo(map);
@@ -576,6 +598,44 @@ function updateKPIs() {
   $("kpiHum").textContent = avgH.toFixed(0) + "%";
 }
 
+function updateWorkspaceData() {
+  const ranked = [...stations].sort((a, b) => AI.healthScore(a.id) - AI.healthScore(b.id));
+  const maintenance = $("maintenanceList");
+  if (maintenance) {
+    maintenance.innerHTML = ranked.slice(0, 8).map((s) => {
+      const health = AI.healthScore(s.id);
+      const color = health > 70 ? "var(--ok)" : health > 40 ? "var(--warn)" : "var(--danger)";
+      return `<div class="maintenance-row"><div><b>${s.name}</b><span>${s.id} · due in ${AI.maintenanceDays(s.id)} days</span></div><div class="maintenance-score"><i style="width:${health}%;background:${color}"></i><b style="color:${color}">${health}%</b></div></div>`;
+    }).join("");
+  }
+  const ready = stations.filter((s) => AI.healthScore(s.id) > 70).length;
+  $("readyCount")?.replaceChildren(document.createTextNode(ready));
+  $("warningCount")?.replaceChildren(document.createTextNode(stations.length - ready));
+  const active = stations.filter((s) => !s.offline);
+  const anomalies = stations.filter((s) => s.status === "danger").length;
+  const avgTemp = active.length ? active.reduce((sum, s) => sum + s.reading.t, 0) / active.length : 0;
+  const avgHumidity = active.length ? active.reduce((sum, s) => sum + s.reading.h, 0) / active.length : 0;
+  const summary = $("reportSummary");
+  if (summary) summary.innerHTML = `<div><span>Reporting stations</span><b>${active.length}</b></div><div><span>Active anomalies</span><b class="report-danger">${anomalies}</b></div><div><span>Mean temperature</span><b>${avgTemp.toFixed(1)}°C</b></div><div><span>Mean humidity</span><b>${avgHumidity.toFixed(0)}%</b></div>`;
+  const source = $("dataSourceLabel")?.textContent || "Live telemetry";
+  if ($("reportSource")) $("reportSource").textContent = `${source} · generated ${new Date().toLocaleString()}`;
+  if ($("lastSync")) $("lastSync").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const quality = stations.length ? Math.round(stations.reduce((sum, station) => sum + AI.healthScore(station.id), 0) / stations.length) : 0;
+  const reporting = stations.length ? Math.round((active.length / stations.length) * 100) : 0;
+  $("qualityScore")?.replaceChildren(document.createTextNode(`${quality}%`));
+  $("reportingScore")?.replaceChildren(document.createTextNode(`${reporting}%`));
+  $("reviewScore")?.replaceChildren(document.createTextNode(String(stations.length - ready)));
+  if ($("qualityBar")) $("qualityBar").style.width = `${quality}%`;
+  if ($("reportingBar")) $("reportingBar").style.width = `${reporting}%`;
+  const activity = $("overviewActivity");
+  if (activity) {
+    const anomalyCount = stations.filter((station) => station.status === "danger").length;
+    const warningCount = stations.filter((station) => station.status === "warn").length;
+    activity.innerHTML = `<div class="activity-row"><span class="activity-dot ${anomalyCount ? "danger" : "ok"}"></span><div><b>${anomalyCount ? `${anomalyCount} anomaly${anomalyCount === 1 ? "" : "ies"} detected` : "No critical anomalies"}</b><small>AI scan completed across the network</small></div></div><div class="activity-row"><span class="activity-dot ${warningCount ? "warn" : "ok"}"></span><div><b>${warningCount ? `${warningCount} station${warningCount === 1 ? "" : "s"} need review` : "All stations within range"}</b><small>Health and telemetry checks are current</small></div></div><div class="activity-row"><span class="activity-dot ok"></span><div><b>Live stream connected</b><small>Last sync ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small></div></div>`;
+  }
+}
+
 function updateHealthPanel() {
   const el = $("healthList");
   if (!el) return;
@@ -664,15 +724,34 @@ function drawChart() {
 }
 
 /* ---------------- Region loading ---------------- */
-function loadRegion(key) {
+ async function loadRegion(key) {
   currentRegion = key;
   const r = REGIONS[key];
   $("regionName").textContent = r.name;
-  stations = r.stations.map((st) => ({
+
+  const liveStations = await fetchLiveStations();
+  const isLiveSource = Array.isArray(liveStations) && liveStations.length > 0;
+  const sourceStations = isLiveSource ? liveStations : r.stations;
+  const regionStations = sourceStations.filter((st) => !key || key === 'india' || st.region === r.name || st.region === key || st.state === key);
+
+  stations = regionStations.map((st) => ({
     ...st,
-    reading: { t: st.base.t + rand(-1, 1), h: st.base.h + rand(-3, 3), p: st.base.p + rand(-1, 1), w: st.base.w, r: st.base.r },
+    reading: { t: Number(st.base?.t ?? st.temperature ?? 26) + rand(-1, 1), h: Number(st.base?.h ?? st.humidity ?? 60) + rand(-3, 3), p: Number(st.base?.p ?? st.pressure ?? 1010) + rand(-1, 1), w: Number(st.base?.w ?? st.wind ?? 10), r: Number(st.base?.r ?? st.rain ?? 0) },
     offline: false, status: "ok", verdict: null, wasAnomaly: false
   }));
+
+  if (!stations.length) {
+    stations = r.stations.map((st) => ({
+      ...st,
+      reading: { t: st.base.t + rand(-1, 1), h: st.base.h + rand(-3, 3), p: st.base.p + rand(-1, 1), w: st.base.w, r: st.base.r },
+      offline: false, status: "ok", verdict: null, wasAnomaly: false
+    }));
+  }
+
+  const sourceLabel = isLiveSource ? 'Data source: IMD live feed' : 'Data source: local India fallback';
+  const ds = $('dataSourceLabel');
+  if (ds) ds.textContent = sourceLabel;
+
   stations.forEach((st) => { AI.initBaseline(st); AI.initHealth(st); history[st.id] = []; });
   selectedId = null;
   $("detailStatus").className = "status-pill";
@@ -715,28 +794,56 @@ document.querySelectorAll(".fault-btn").forEach((b) =>
 
 $("stationSearch").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
-  if (!q) return;
-  const match = stations.find((s) => s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q));
+  if (!q) {
+    renderTable();
+    return;
+  }
+  const match = stations.find((s) =>
+    s.name.toLowerCase().includes(q) ||
+    s.id.toLowerCase().includes(q) ||
+    (s.state || "").toLowerCase().includes(q) ||
+    (s.region || "").toLowerCase().includes(q)
+  );
   if (match) selectStation(match.id);
 });
+
+const VIEW_META = {
+  overview: ["Dashboard Overview", "A live view of station health, alerts, and weather telemetry."],
+  map: ["Live Network Map", "Inspect station locations and drill into current telemetry."],
+  maintenance: ["Maintenance Planning", "Prioritize field work using predicted sensor health."],
+  analysis: ["Analysis Studio", "Review trends, alerts, and anomaly detection performance."],
+  reports: ["Network Reports", "A concise operational summary for the current observation window."]
+};
+
+function setDashboardView(view) {
+  document.querySelectorAll("[data-dashboard-view]").forEach((section) => {
+    section.hidden = section.dataset.dashboardView !== view;
+  });
+  document.querySelectorAll(".side-btn").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+  const meta = VIEW_META[view] || VIEW_META.overview;
+  $("pageTitle").textContent = meta[0];
+  $("pageSubtitle").textContent = meta[1];
+  if (view === "map") setTimeout(() => map?.invalidateSize(), 0);
+  updateWorkspaceData();
+}
 
 document.querySelectorAll(".side-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".side-btn").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     const view = btn.dataset.view;
-    if (view === "alerts") $("alertsList").scrollIntoView({ behavior: "smooth", block: "center" });
-    if (view === "stations") $("stationTable").scrollIntoView({ behavior: "smooth", block: "center" });
-    if (view === "analytics") $("tempChart").scrollIntoView({ behavior: "smooth", block: "center" });
-    if (view === "overview") window.scrollTo({ top: 0, behavior: "smooth" });
+    setDashboardView(view);
   });
 });
+
+$("printReport")?.addEventListener("click", () => window.print());
 
 window.addEventListener("resize", drawChart);
 
 /* ---------------- Boot ---------------- */
 initMap();
-loadRegion("mumbai");
+loadRegion("india");
+setDashboardView("overview");
 $("toggleHeat").classList.add("active");
 $("toggleLabels").classList.add("active");
 setInterval(tick, 2000);
