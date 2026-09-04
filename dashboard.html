@@ -46,6 +46,7 @@
       <nav class="side-nav">
         <button class="side-btn active" data-view="overview" title="Overview">📊<span>Overview</span></button>
         <button class="side-btn" data-view="map" title="Live map">🗺️<span>Live Map</span></button>
+        <button class="side-btn" data-view="weather" title="Weather observations">🌦️<span>Weather</span></button>
         <button class="side-btn" data-view="maintenance" title="Maintenance">🛠️<span>Maintenance</span></button>
         <button class="side-btn" data-view="analysis" title="Analysis">📈<span>Analysis</span></button>
         <button class="side-btn" data-view="reports" title="Reports">📄<span>Reports</span></button>
@@ -161,7 +162,7 @@
             <h3>📈 24h Temperature History</h3>
             <span class="chart-station" id="chartStation">Network average</span>
           </div>
-          <canvas id="tempChart" height="150"></canvas>
+          <div class="chart-wrap"><canvas id="tempChart" height="150"></canvas><div class="chart-tooltip" id="chartTooltip" hidden></div></div>
         </div>
         <div class="alerts-panel border-anim rise" style="animation-delay:0.5s">
           <div class="panel-head">
@@ -194,9 +195,9 @@
           <div class="eval-grid">
             <div class="eval-cell"><span>Injected</span><b id="evalInjected">0</b></div>
             <div class="eval-cell"><span>Detected</span><b id="evalDetected">0</b></div>
-            <div class="eval-cell"><span>Precision</span><b id="evalPrecision">--</b></div>
-            <div class="eval-cell"><span>Recall</span><b id="evalRecall">--</b></div>
-            <div class="eval-cell"><span>F1 Score</span><b id="evalF1">--</b></div>
+            <div class="eval-cell"><span>Precision</span><b id="evalPrecision">0%</b></div>
+            <div class="eval-cell"><span>Recall</span><b id="evalRecall">0%</b></div>
+            <div class="eval-cell"><span>F1 Score</span><b id="evalF1">0.00</b></div>
           </div>
         </div>
       </div>
@@ -230,6 +231,12 @@
           <div class="readiness"><div><b id="readyCount">0</b><span>stations ready</span></div><div><b id="warningCount">0</b><span>need review</span></div><div><b>24h</b><span>forecast window</span></div></div>
           <p class="workspace-copy">Use the queue to plan calibration and field visits before data quality drops.</p>
         </div>
+      </div>
+
+      <div class="weather-panel table-panel border-anim" data-dashboard-view="weather">
+        <div class="panel-head"><div><p class="eyebrow">WEATHER OBSERVATIONS</p><h3>Stable station conditions</h3></div><span class="chart-station" id="weatherUpdated">Snapshot pending</span></div>
+        <div class="weather-note">Readings are held between observation refreshes so short anomaly simulations do not make the weather report jump every second.</div>
+        <div class="table-wrap"><table><thead><tr><th>Station</th><th>Temperature</th><th>Humidity</th><th>Precipitation</th><th>Wind</th><th>Pressure</th></tr></thead><tbody id="weatherTable"></tbody></table></div>
       </div>
 
       <div class="report-panel table-panel border-anim" data-dashboard-view="reports">

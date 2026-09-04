@@ -992,3 +992,12 @@ tbody tr:hover { background: rgba(107, 174, 214, 0.1); }
 .light-mode .map-summary .map-ok { color: #3f8062; }
 
 @media (max-width: 480px) { .map-summary span { font-size: 0.61rem; } .map-summary div { padding: 0.7rem 0.55rem; } }
+.chart-wrap { position: relative; min-height: 184px; }
+.chart-wrap canvas { display: block; }
+.chart-tooltip { position: absolute; top: 0.5rem; left: 0; z-index: 3; padding: 0.45rem 0.6rem; border: 1px solid rgba(107, 174, 214, 0.38); border-radius: 6px; background: #0e3554; color: #f4f7f8; font: 600 0.68rem var(--font-mono); pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(2, 15, 27, 0.25); }
+.weather-note { padding: 0.9rem 1.2rem; border-bottom: 1px solid rgba(107, 174, 214, 0.14); color: #a8c0d0; font-size: 0.78rem; line-height: 1.5; }
+.weather-panel table span { color: #a8c0d0; font-size: 0.68rem; }
+.light-mode .chart-tooltip { background: #174a6e; color: #fff; }
+.light-mode .weather-note, .light-mode .weather-panel table span { color: #65727c; }
+@media (max-width: 1100px) { .side-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .side-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); } }

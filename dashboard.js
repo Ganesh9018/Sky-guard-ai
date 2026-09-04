@@ -112,6 +112,10 @@ let showLabels = true;
 let currentRegion = "india";
 const history = {};            // id -> [{t,h,p,w,r,ts}]
 const chartHistory = {};       // id -> temperature samples shown in the trend chart
+const weatherSnapshot = {};
+let weatherSnapshotAt = 0;
+let chartPoints = [];
+let chartGeometry = null;
 const MAX_HISTORY = 90;
 
 /* Evaluation metrics (fault-injection lab) */
@@ -644,6 +648,15 @@ function updateWorkspaceData() {
     const warningCount = stations.filter((station) => station.status === "warn").length;
     activity.innerHTML = `<div class="activity-row"><span class="activity-dot ${anomalyCount ? "danger" : "ok"}"></span><div><b>${anomalyCount ? `${anomalyCount} anomaly${anomalyCount === 1 ? "" : "ies"} detected` : "No critical anomalies"}</b><small>AI scan completed across the network</small></div></div><div class="activity-row"><span class="activity-dot ${warningCount ? "warn" : "ok"}"></span><div><b>${warningCount ? `${warningCount} station${warningCount === 1 ? "" : "s"} need review` : "All stations within range"}</b><small>Health and telemetry checks are current</small></div></div><div class="activity-row"><span class="activity-dot ok"></span><div><b>Live stream connected</b><small>Last sync ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small></div></div>`;
   }
+  if (!weatherSnapshotAt || Date.now() - weatherSnapshotAt > 60000) {
+    stations.forEach((station) => {
+      if (!station.verdict?.isAnomaly) weatherSnapshot[station.id] = { ...station.reading, name: station.name, id: station.id };
+    });
+    weatherSnapshotAt = Date.now();
+  }
+  const weatherTable = $("weatherTable");
+  if (weatherTable) weatherTable.innerHTML = Object.values(weatherSnapshot).map((reading) => `<tr><td class="td-name">${reading.name}<br><span>${reading.id}</span></td><td>${reading.t.toFixed(1)}°C</td><td>${reading.h.toFixed(0)}%</td><td>${reading.r.toFixed(1)} mm</td><td>${reading.w.toFixed(0)} km/h</td><td>${reading.p.toFixed(0)} hPa</td></tr>`).join("");
+  if ($("weatherUpdated")) $("weatherUpdated").textContent = `Updated ${new Date(weatherSnapshotAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 function updateHealthPanel() {
@@ -678,19 +691,21 @@ function drawChart() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = cssW, H = cssH;
 
-  let series, label;
+  let series, label, points;
   if (selectedId && chartHistory[selectedId]) {
     const h = chartHistory[selectedId];
-    series = h.map((r) => r.t);
+    points = h;
+    series = points.map((r) => r.t);
     label = stations.find((s) => s.id === selectedId)?.name || selectedId;
   } else {
     const hs = Object.values(chartHistory);
     const len = Math.max(0, ...hs.map((h) => h.length));
+    points = [];
     series = [];
     for (let i = 0; i < len; i++) {
       let st = 0, n = 0;
       hs.forEach((h) => { if (h[i]) { st += h[i].t; n++; } });
-      if (n) series.push(st / n);
+      if (n) { series.push(st / n); points.push({ t: st / n, ts: Date.now() - (len - i) * 3600000 }); }
     }
     label = "Network average";
   }
@@ -705,6 +720,8 @@ function drawChart() {
   const min = Math.min(...series) - 0.8, max = Math.max(...series) + 0.8;
   const px = (i) => (i / (series.length - 1)) * (W - 40) + 20;
   const py = (v) => H - 24 - ((v - min) / (max - min)) * (H - 44);
+  chartPoints = points;
+  chartGeometry = { px, py, W, H };
 
   ctx.strokeStyle = "rgba(90,140,255,0.12)"; ctx.lineWidth = 1;
   for (let g = 0; g <= 3; g++) { const y = 20 + (g / 3) * (H - 44); ctx.beginPath(); ctx.moveTo(20, y); ctx.lineTo(W - 20, y); ctx.stroke(); }
@@ -729,6 +746,23 @@ function drawChart() {
   const lx = px(series.length - 1), ly = py(series[series.length - 1]);
   ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2); ctx.fillStyle = "#ff6901"; ctx.fill();
 }
+
+function showChartTooltip(event) {
+  if (!chartGeometry || chartPoints.length < 2) return;
+  const canvas = event.currentTarget;
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const ratio = Math.max(0, Math.min(1, (x - 20) / (chartGeometry.W - 40)));
+  const index = Math.round(ratio * (chartPoints.length - 1));
+  const point = chartPoints[index];
+  const tooltip = $("chartTooltip");
+  if (!point || !tooltip) return;
+  tooltip.hidden = false;
+  tooltip.textContent = `${new Date(point.ts || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · ${point.t.toFixed(1)}°C`;
+  tooltip.style.left = `${Math.max(8, Math.min(rect.width - 128, chartGeometry.px(index) - 55))}px`;
+}
+
+function hideChartTooltip() { $("chartTooltip")?.setAttribute("hidden", ""); }
 
 /* ---------------- Region loading ---------------- */
  async function loadRegion(key) {
@@ -767,6 +801,8 @@ function drawChart() {
       t: Number(st.base?.t ?? 26) + Math.sin((hour / 24) * Math.PI * 2 - 1.2) * 1.8 + rand(-0.35, 0.35)
     }));
   });
+  Object.keys(weatherSnapshot).forEach((id) => delete weatherSnapshot[id]);
+  weatherSnapshotAt = 0;
   selectedId = null;
   $("detailStatus").className = "status-pill";
   $("detailStatus").textContent = "Select a station";
@@ -841,6 +877,7 @@ $("stationSearch").addEventListener("input", (e) => {
 const VIEW_META = {
   overview: ["Dashboard Overview", "A live view of station health, alerts, and weather telemetry."],
   map: ["Live Network Map", "Inspect station locations and drill into current telemetry."],
+  weather: ["Weather Observations", "Review stable temperature, precipitation, wind, and pressure readings."],
   maintenance: ["Maintenance Planning", "Prioritize field work using predicted sensor health."],
   analysis: ["Analysis Studio", "Review trends, alerts, and anomaly detection performance."],
   reports: ["Network Reports", "A concise operational summary for the current observation window."]
@@ -868,6 +905,8 @@ document.querySelectorAll(".side-btn").forEach((btn) => {
 });
 
 $("printReport")?.addEventListener("click", () => window.print());
+$("tempChart")?.addEventListener("mousemove", showChartTooltip);
+$("tempChart")?.addEventListener("mouseleave", hideChartTooltip);
 
 window.addEventListener("resize", drawChart);
 
